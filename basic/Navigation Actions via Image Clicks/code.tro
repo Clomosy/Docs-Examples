@@ -1,0 +1,43 @@
+Var   
+  Form1:TclForm; 
+  Label1:TclLabel;
+  ImgShipmentWait,ImgShipmentApprove,ImgShipmentDecline:TclImage;
+  Panel1:TclPanel;
+
+{
+  Form1 = TclForm.Create(Self);  
+  Label1= Form1.AddNewLabel(Form1,'TitleLbl','Test Shipping Company');
+  Label1.StyledSettings = ssFamily;
+  Label1.TextSettings.Font.Size = 20;
+  Label1.Align = alTop;
+  Label1.Margins.Left= 70;
+  Label1.Margins.Top= 20;
+  Label1.Height = 70;
+
+  Panel1=Form1.AddNewPanel(Form1,'NavigatePanel'); 
+  Panel1.Align = AlClient;
+  Panel1.Margins.Top = 50;
+  Panel1.StyleLookup='pushpanel';
+
+  ImgShipmentWait = Form1.AddNewImage(Panel1,'ShipmentWaitBtn');
+  ImgShipmentWait.Height = 100;
+  ImgShipmentWait.Align = alTop;
+  Form1.SetImage(ImgShipmentWait,'https://clomosy.com/docs/shipment1.jpg'); 
+  Form1.AddNewEvent(ImgShipmentWait,tbeOnClick, ' ShowMessage(''Shipment Wait Clicked'')'); 
+
+  ImgShipmentApprove = Form1.AddNewImage(Panel1,'ImgShipmentApprove');
+  ImgShipmentApprove.Align = alTop;
+  ImgShipmentApprove.Height = 100;
+  ImgShipmentApprove.Margins.Top = 20;
+  Form1.SetImage(ImgShipmentApprove,'https://clomosy.com/docs/shipment2.jpg'); 
+  Form1.AddNewEvent(ImgShipmentApprove,tbeOnClick, 'ShowMessage(''Shipment Approve Clicked'')');
+
+  ImgShipmentDecline = Form1.AddNewImage(Panel1,'ShipmentDeclineBtn');
+  ImgShipmentDecline.Height = 100;
+  ImgShipmentDecline.Margins.Top = 20;
+  ImgShipmentDecline.Align = alTop; 
+  Form1.SetImage(ImgShipmentDecline,'https://clomosy.com/docs/shipment3.jpg'); 
+  Form1.AddNewEvent(ImgShipmentDecline,tbeOnClick, 'ShowMessage(''Shipment Decline Clicked'')');
+  
+  Form1.Run;
+}

@@ -1,0 +1,31 @@
+Var   
+  Form1:TclForm;
+  ListView1 : TClListView;
+  btn1 : TclButton;
+  stringList : TclStringList;
+void onItemClicked;
+{
+  stringList = ListView1.GetValueCheckBoxList('MAIN_TEXT');
+  ShowMessage(stringList.text);
+  ShowMessage(stringList.DelimitedText); // Separates selected data with ';' sign.
+  ShowMessage(IntToStr(ListView1.Items.CheckedCount(true))); 
+}
+void CreateListView;
+{
+  ListView1 = Form1.AddNewListView(Form1,'ListView1');
+  ListView1.Align = alClient;
+  ListView1.clLoadListViewDataFromDataset(Clomosy.ClDataSetFromJSON('[{"RECORD_GUID":"AAAAAA","MAIN_TEXT":"Hello World","SUB_TEXT":5,"SIDE_TEXT_TOP":1,"SIDE_TEXT_CENTER":1,"SIDE_TEXT_BOTTOM":1,"FOOTER_TEXT":1},{"RECORD_GUID":"BBBBBB","MAIN_TEXT":"Hi World","SUB_TEXT":1,"SIDE_TEXT_TOP":1,"SIDE_TEXT_CENTER":1,"SIDE_TEXT_BOTTOM":1,"FOOTER_TEXT":1}]'));
+  ListView1.CheckedProperty = True; 
+}
+
+{
+  Form1 = TclForm.Create(Self);
+  btn1 = Form1.AddNewButton(Form1,'btn1','Click');
+  btn1.StyledSettings = ssFamily;
+  btn1.TextSettings.Font.Size = 20;
+  btn1.TextSettings.FontColor = clAlphaColor.clHexToColor('#8a067c');
+  Form1.AddNewEvent(btn1,tbeOnClick,'onItemClicked');
+  CreateListView;
+  
+  Form1.Run;
+}

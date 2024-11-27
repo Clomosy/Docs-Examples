@@ -1,0 +1,20 @@
+Var  
+ Form1:TclForm;
+ Image1:TclImage;
+ Label1:TclLabel;
+{
+  Form1 = TclForm.Create(Self);  
+  Image1 = Form1.AddNewImage(Form1,'Image1');
+  Image1.Height = 100;
+  Image1.Align = alClient;
+  Form1.SetImage(Image1,'https://clomosy.com/docs/fox.jpg');
+  Form1.AddNewEvent(Image1,tbeOnClick, ' ShowMessage(''Grrrr!'')' );
+  Label1= Form1.AddNewLabel(Form1,'Label1','Cute Red Fox');
+  Label1.StyledSettings = ssFamily;
+  Label1.TextSettings.Font.Size = 70;
+  Label1.Align = alTop;
+  Label1.Margins.Left= 70;
+  Label1.Margins.Top= 20;
+  Label1.Height = 70;
+  Form1.Run;
+}

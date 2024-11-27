@@ -1,0 +1,113 @@
+Var   
+  Form1:TclForm;
+  stPnl:TclPanel;
+  i:integer;
+  Qry:TSqlQuery;
+  stLbl:TCLLabel;
+  stockStr:string;
+  stBtn:TclButton;
+
+void GetData;
+var
+  Qry : TClSQLiteQuery;
+{
+  try
+    Qry = Clomosy.DBSQLiteQueryWith('SELECT Product_Code,Product_Name,Product_Price FROM TBLSTOCKSB');
+    Qry.OpenOrExecute;
+    Qry.First;
+    i=1;
+    Clomosy.ResumeLocalEvent = False;
+    
+    while (not Qry.EOF)
+    {
+      stPnl=Form1.AddNewPanel(Form1,'stPanel'+IntToStr(i));
+      stPnl.Height = 100;
+      stPnl.Margins.Top = 20;
+      stPnl.StyleLookup='pushpanel';
+      Form1.NewObject = TBasisControl(stPnl);  
+      Form1.NewObject.Align = alTop;
+      
+      stockStr='Code: '+Qry.FieldByName('Product_Code').AsString+' Name: '+Qry.FieldByName('Product_Name').AsString+' Price: '+Qry.FieldByName('Product_Price').AsString;
+      stLbl= Form1.AddNewLabel(stPnl,'stLbl'+IntToStr(i),stockStr);
+      stLbl.StyledSettings = ssFamily;
+      stLbl.TextSettings.Font.Size = 16;
+      stLbl.Align = alLeft;
+      stLbl.Margins.Left= 20;
+      stLbl.Margins.Top= 20;
+      stLbl.Width = 100;
+      
+      stBtn = Form1.AddNewButton(stPnl,'stBtn'+IntToStr(i),'More');
+      stBtn.Width  = 75;
+      stBtn.align  = alRight;
+      stBtn.Margins.Right= 40;
+      
+      Form1.AddNewEvent(stBtn,tbeOnClick,'ShowMessage('''+Qry.FieldByName('Product_Name').AsString+''');');
+      
+      Clomosy.ResumeLocalEvent = False;
+      
+      Qry.Next;
+      i=i+1;
+    }
+  
+  except
+    ShowMessage('Exception Class: '+LastExceptionClassName+' Exception GetData Message: '+LastExceptionMessage);
+  }
+}
+
+void SqLiteInsertData;
+{
+  try
+    Clomosy.DBSQLiteQuery.Sql.Text = '
+    INSERT INTO TBLSTOCKSB (Product_Code, Product_Name, Product_Price) VALUES (3, ''Product 3'',100);
+    INSERT INTO TBLSTOCKSB (Product_Code, Product_Name, Product_Price) VALUES (4, ''Product 4'',200);
+    INSERT INTO TBLSTOCKSB (Product_Code, Product_Name, Product_Price) VALUES (5, ''Product 5'',350);';
+    Clomosy.DBSQLiteQuery.OpenOrExecute;
+    
+    ShowMessage('Adding data to the table was successful!');
+  except
+    ShowMessage('Exception Class: '+LastExceptionClassName+' Exception SqLiteInsertData Message: '+LastExceptionMessage);
+  }
+}
+
+void SqLiteConnectionCreateTable;
+var
+  TableExists: Boolean;
+{
+  try
+    Clomosy.DBSQLiteConnect(Clomosy.AppFilesPath + 'DBSTOCK.db3', '');
+    
+    // Check if the table exists
+    Clomosy.DBSQLiteQuery.Sql.Text = 'SELECT name FROM sqlite_master WHERE type="table" AND name="TBLSTOCKSB";';
+    Clomosy.DBSQLiteQuery.OpenOrExecute;
+    
+    // Check the results
+    TableExists = not Clomosy.DBSQLiteQuery.Eof;
+    
+    // Create the table if it does not exist
+    if not (TableExists)
+    {
+      Clomosy.DBSQLiteQuery.Sql.Text = 'CREATE TABLE TBLSTOCKSB(Product_Code INTEGER NOT NULL,
+      Product_Name  TEXT NOT NULL,
+      Product_Price INTEGER NOT NULL)';
+      Clomosy.DBSQLiteQuery.OpenOrExecute;
+      
+      ShowMessage('Table successfully added to the database!');
+      SqLiteInsertData;
+    } else
+    {
+      ShowMessage('The Products table already exists.');
+    }
+  
+  except
+    ShowMessage('Exception Class: '+LastExceptionClassName+' Exception SqLiteConnectionCreateTable Message: '+LastExceptionMessage);
+  }
+}
+
+
+{
+  Form1 = TclForm.Create(Self);  
+  SqLiteConnectionCreateTable;
+  GetData;
+  
+  Form1.Run;
+}

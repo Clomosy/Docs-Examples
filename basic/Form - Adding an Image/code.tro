@@ -1,0 +1,11 @@
+Var   
+  Form1:TclForm;
+  Image1:TclImage;
+{
+  Form1 = TclForm.Create(Self);    
+  Image1 = Form1.AddNewImage(Form1,'Image1');
+  Image1.Height = 100;
+  Image1.Align = alClient;
+  Form1.SetImage(Image1,'https://clomosy.com/docs/fox.jpg');
+  Form1.Run;
+}

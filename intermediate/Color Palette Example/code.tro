@@ -1,0 +1,79 @@
+var
+  Form1:TclForm;
+  PanelColor :TclProPanel;
+  LabelColor:TclProLabel;
+  i :integer;
+  ArrColor : TClArrayString;
+  
+
+function GenerateRandomHexColor: string;
+var
+  Red, Green, Blue: Byte;
+{
+  Red = clMath.GenerateRandom(0,256);
+  Green = clMath.GenerateRandom(0,256);
+  Blue = clMath.GenerateRandom(0,256);
+  Result = '#' + IntToHex(Red, 2) + IntToHex(Green, 2) + IntToHex(Blue, 2);
+}
+
+void PanelColorOnClick;
+var
+  rndmColor:string;
+  clickedPanel:TClProPanel;
+  selectedLabel:TClProLabel;
+{
+  rndmColor = GenerateRandomHexColor;
+  clickedPanel = TClProPanel(Form1.Clsender);
+  clickedPanel.clProSettings.BackgroundColor = clAlphaColor.clHexToColor(rndmColor);
+  clickedPanel.SetclProSettings(clickedPanel.clProSettings);
+  
+  //ShowMessage(clickedPanel.clTagStr);
+  selectedLabel = TClProLabel(Form1.clFindComponent('LabelColor'+clickedPanel.clTagStr));
+  selectedLabel.Text = rndmColor; 
+  selectedLabel.clProSettings.FontColor = clAlphaColor.clHexToColor(rndmColor);
+  selectedLabel.SetclProSettings(selectedLabel.clProSettings); 
+}
+
+void LabelColorOnClick;
+{
+  Clomosy.setClipBoard(TClProLabel(Form1.Clsender).Text);
+  ShowMessage ('Copied!');
+}
+
+{
+  Form1 = TclForm.Create(Self);
+  ArrColor = TClArrayInteger.Create;
+  ArrColor = ['#5e61ff','#AF1B3F','#01FDF6'];
+  
+  for (i = 0 to 2)
+  {
+    PanelColor=Form1.AddNewProPanel(Form1,'PanelColor'+IntToStr(i+1));
+    PanelColor.clTagStr = IntToStr(i+1);
+    PanelColor.Align = alTop;
+    PanelColor.Height = (Form1.clHeight)/3;
+    PanelColor.Width  = (Form1.clWidth)/3;
+    PanelColor.clProSettings.BackgroundColor = clAlphaColor.clHexToColor(ArrColor[i]);
+    PanelColor.SetclProSettings(PanelColor.clProSettings);
+    Form1.AddNewEvent(PanelColor,tbeOnClick,'PanelColorOnClick');
+    
+    LabelColor = Form1.AddNewProLabel(TClProPanel(Form1.clFindComponent('PanelColor'+IntToStr(i+1))),'LabelColor'+IntToStr(i+1),ArrColor[i]);
+    LabelColor.clTagStr = IntToStr(i+1);
+    LabelColor.Align = alRight;
+    LabelColor.Margins.Top = 120;
+    LabelColor.Width  = 110;
+    LabelColor.clProSettings.BackgroundColor = clAlphaColor.clHexToColor('#ffffff');
+    LabelColor.clProSettings.BorderColor = clAlphaColor.clHexToColor('#ffffff');
+    LabelColor.clProSettings.BorderWidth = 2;
+    LabelColor.clProSettings.IsRound = True;
+    LabelColor.clProSettings.RoundHeight = 10;
+    LabelColor.clProSettings.RoundWidth = 10;
+    LabelColor.clProSettings.FontColor = clAlphaColor.clHexToColor(ArrColor[i]);
+    LabelColor.clProSettings.FontSize = 24;
+    LabelColor.clProSettings.TextSettings.Font.Style = [fsBold];
+    LabelColor.clProSettings.FontVertAlign = palcenter;//palLeading , palCenter , palTrailing
+    LabelColor.clProSettings.FontHorzAlign = palCenter;
+    LabelColor.SetclProSettings(LabelColor.clProSettings);
+    Form1.AddNewEvent(LabelColor,tbeOnClick,'LabelColorOnClick');
+  }
+  Form1.Run;
+}

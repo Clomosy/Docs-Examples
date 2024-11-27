@@ -1,0 +1,90 @@
+Var   
+  Form1:TclForm;
+  dataListView : TclListView;
+
+void SetListView;
+{
+  dataListView = Form1.AddNewListView(Form1, 'dataListView');
+  dataListView.Align = alClient;
+  dataListView.Margins.Left = 5;
+  dataListView.Margins.Bottom = 5;
+  dataListView.Margins.Right = 10;
+  dataListView.Margins.Top = 5;
+}
+
+void GetData;
+var
+  Qry : TClSQLiteQuery;
+{
+  try
+    Qry = Clomosy.DBSQLiteQueryWith('SELECT Product_Code as RECORD_GUID,Product_Name as MAIN_TEXT,Product_Price as FOOTER_TEXT FROM TBLSTOCKSB');
+    Qry.OpenOrExecute;
+    
+    while (not Qry.EOF)
+    {
+      dataListView.clLoadListViewDataFromDataset(Qry);
+    }
+  except
+    ShowMessage('Exception Class: '+LastExceptionClassName+' Exception GetData Message: '+LastExceptionMessage);
+  }
+}
+
+void SqLiteInsertData;
+{
+  try
+    Clomosy.DBSQLiteQuery.Sql.Text = '
+    INSERT INTO TBLSTOCKSB (Product_Code, Product_Name, Product_Price) VALUES (3, ''HM001'',100);
+    INSERT INTO TBLSTOCKSB (Product_Code, Product_Name, Product_Price) VALUES (4, ''HM002'',200);
+    INSERT INTO TBLSTOCKSB (Product_Code, Product_Name, Product_Price) VALUES (5, ''HM003'',350);
+    INSERT INTO TBLSTOCKSB (Product_Code, Product_Name, Product_Price) VALUES (6, ''HM004'',350);
+    INSERT INTO TBLSTOCKSB (Product_Code, Product_Name, Product_Price) VALUES (7, ''HM005'',350);';
+    Clomosy.DBSQLiteQuery.OpenOrExecute;
+    
+    ShowMessage('Adding data to the table was successful!');
+  except
+    ShowMessage('Exception Class: '+LastExceptionClassName+' Exception SqLiteInsertData Message: '+LastExceptionMessage);
+  }
+}
+
+void SqLiteConnectionCreateTable;
+var
+  TableExists: Boolean;
+{
+  try
+    Clomosy.DBSQLiteConnect(Clomosy.AppFilesPath + 'DBSTOCK.db3', '');
+    
+    // Check if the table exists
+    Clomosy.DBSQLiteQuery.Sql.Text = 'SELECT name FROM sqlite_master WHERE type="table" AND name="TBLSTOCKSB";';
+    Clomosy.DBSQLiteQuery.OpenOrExecute;
+    
+    // Check the results
+    TableExists = not Clomosy.DBSQLiteQuery.Eof;
+    
+    // Create the table if it does not exist
+    if not (TableExists)
+    {
+      Clomosy.DBSQLiteQuery.Sql.Text = 'CREATE TABLE TBLSTOCKSB(Product_Code INTEGER NOT NULL,
+      Product_Name  TEXT NOT NULL,
+      Product_Price INTEGER NOT NULL)';
+      Clomosy.DBSQLiteQuery.OpenOrExecute;
+      
+      ShowMessage('Table successfully added to the database!');
+      SqLiteInsertData;
+    } else
+    {
+      ShowMessage('The Products table already exists.');
+    }
+  except
+    ShowMessage('Exception Class: '+LastExceptionClassName+' Exception SqLiteConnectionCreateTable Message: '+LastExceptionMessage);
+  }
+}
+
+
+{
+  Form1 = TclForm.Create(Self);  
+  SetListView;
+  SqLiteConnectionCreateTable;
+  GetData;
+  
+  Form1.Run;
+}

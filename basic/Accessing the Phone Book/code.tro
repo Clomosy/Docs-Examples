@@ -1,0 +1,40 @@
+var
+  Form1:TclForm;
+  BtnShow : TClProButton;
+  MemoContact : TClMemo;
+  Device1:TclDeviceManager;
+
+void ConList;
+{
+  MemoContact.Text = Device1.ContactsList.Text;
+}
+
+void BtnShowClicked;
+{
+  Device1.GetAddressBookContacts('ConList');
+}
+
+{
+  Form1 = TclForm.Create(Self);
+  
+  BtnShow = Form1.AddNewProButton(Form1,'BtnShow','List');
+  BtnShow.Align = alMostTop;
+  BtnShow.Height = 40;
+  BtnShow.Margins.Left = 60;
+  BtnShow.Margins.Right = 60;
+  BtnShow.clProSettings.BorderColor = clAlphaColor.clHexToColor('#571d43');
+  BtnShow.clProSettings.BorderWidth = 2;
+  BtnShow.clProSettings.BackgroundColor = clAlphaColor.clHexToColor('#d9c5d2');
+  BtnShow.clProSettings.IsRound = True;
+  BtnShow.clProSettings.RoundHeight = 2;
+  BtnShow.clProSettings.RoundWidth = 2;
+  BtnShow.SetclProSettings(BtnShow.clProSettings);
+  Form1.AddNewEvent(BtnShow,tbeOnClick,'BtnShowClicked');
+    
+  MemoContact = Form1.AddNewMemo(Form1,'MemoContact','');
+  MemoContact.Align = alClient;
+  MemoContact.ReadOnly = True;
+   
+  Device1=TclDeviceManager.Create;
+  Form1.Run;
+}

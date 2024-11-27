@@ -1,0 +1,191 @@
+var
+  Form1 : TclForm;
+  countryListView : TClProListView;
+  country,web_pages,name : TclProLabel;
+  countryDesignerPnl : TClProListViewDesignerPanel;
+  searchEdt : TClProSearchEdit;
+  titleLbl : TclLabel;
+  strUrl : String;
+  xWeb:TclWebBrowser;
+  closeBtn : TClProButton;
+  webPnl : TclPanel;
+  closePnl : TclProPanel;
+
+void getwebRequest;
+var 
+  Str:String;
+  MyHttp:TclHttp;
+  showListQuery: TClJSONQuery;
+{
+  MyHttp=TclHttp.Create(Nil);
+  showListQuery = TCLJSONQuery.Create(nil);
+  Try
+    str=MyHttp.GetRequest('http://universities.hipolabs.com/search?country=Turkey');
+    showListQuery = Clomosy.ClDataSetFromJSON(str);
+    
+    with showListQuery do
+    {
+      if Found
+      {
+        First;
+        countryListView.clLoadProListViewDataFromDataset(showListQuery);
+      }
+      else
+      {
+        countryListView.ClearList;
+      }
+    }
+  Finally
+    MyHttp.Free;
+  }
+}
+
+void BtnOnClick;
+{
+  webPnl.Visible = not webPnl.Visible;
+}
+
+void getWordPnl;
+{
+  webPnl.Visible = True;
+  xWeb.Navigate(strUrl);
+}
+
+function getWord(AUrl : String): String;
+var
+  str : String;
+{
+  str = clGetStringAfter(AUrl,'["');
+  str = clGetStringTo(str,'"]');
+  str = clGetStringReplace(str,'\','');
+  Result = str;
+}
+
+void onItemClicked;
+{
+  strUrl = getWord(countryListView.clSelectedItemData(clText));
+  getWordPnl;
+}
+
+void CreateDesignerPanel;
+{
+  countryDesignerPnl = Form1.AddNewProListViewDesignerPanel(countryListView,'countryDesignerPnl'); 
+  countryDesignerPnl.Height = 100;
+  countryDesignerPnl.Width = 150;
+  countryDesignerPnl.clProSettings.BackgroundColor = clAlphaColor.clHexToColor('#e1e1e1');
+  countryDesignerPnl.clProSettings.BorderColor = clAlphaColor.clHexToColor('#66cc99');
+  countryDesignerPnl.clProSettings.BorderWidth = 3;
+  countryDesignerPnl.clProSettings.IsRound = True;
+  countryDesignerPnl.clProSettings.RoundHeight = 20;
+  countryDesignerPnl.clProSettings.RoundWidth = 20;
+  countryDesignerPnl.SetclProSettings(countryDesignerPnl.clProSettings);
+  countryListView.SetDesignerPanel(countryDesignerPnl);
+}
+
+void CreateListView;
+{
+  countryListView = Form1.AddNewProListView(Form1,'countryListView');
+  countryListView.Align = AlClient;
+  countryListView.Margins.Top = 20;
+  countryListView.Margins.Left = 20;
+  countryListView.Margins.Right = 20;
+  countryListView.Margins.Bottom = 20;
+  countryListView.clProSettings.BorderColor = clAlphaColor.clHexToColor('#66cc99');
+  countryListView.clProSettings.BorderWidth = 2;
+  countryListView.clProSettings.IsRound = True;
+  countryListView.clProSettings.RoundHeight = 5;
+  countryListView.clProSettings.RoundWidth = 5;
+  countryListView.clProSettings.BackgroundColor = clAlphaColor.clHexToColor('#ffffff');
+  countryListView.clProSettings.ViewType = lvIcon;//(lvList, lvIcon, lvWaterFall)
+  countryListView.clProSettings.ColCount = 2;
+  countryListView.clProSettings.ItemWidth = 50;
+  countryListView.clProSettings.ItemSpace = 10;
+  countryListView.SetclProSettings(countryListView.clProSettings);
+  countryListView.ListType = 'vertical';
+  searchEdt.TargetListView = countryListView;
+  Form1.AddNewEvent(countryListView,tbeOnItemClick,'onItemClicked');
+}
+
+void createWebContainer;
+{
+  name = Form1.AddNewProLabel(countryDesignerPnl,'name','{name}');
+  name.Align = ALMostTop;
+  name.Height = 20;
+  name.Margins.Top = 10;
+  name.Margins.Left = 10;
+  countryDesignerPnl.AddPanelObject(name,clCaption);
+  name.Properties.AutoSize = True;
+  
+  web_pages = Form1.AddNewProLabel(countryDesignerPnl,'web_pages','{web_pages}');
+  web_pages.Align = ALMostLeft;
+  web_pages.Width = 40;
+  web_pages.Margins.Top = 10;
+  web_pages.Margins.Right = 10;
+  web_pages.Margins.Left = 10;
+  web_pages.Margins.Bottom = 10;
+  countryDesignerPnl.AddPanelObject(web_pages,clText);
+  web_pages.Properties.AutoSize = True;
+  web_pages.Visible = False;
+  
+  country = Form1.AddNewProLabel(countryDesignerPnl,'country','{country}');
+  country.Align = ALMostRight;
+  country.Margins.Top = 5;
+  country.Margins.Right = 10;
+  countryDesignerPnl.AddPanelObject(country,clText2);
+  country.Properties.AutoSize = True;
+}
+
+void SetSearchEdit;
+{
+  searchEdt = Form1.AddNewProSearchEdit(Form1,'searchEdt','Search Something ...');
+  searchEdt.Align = alTop;
+  searchEdt.Margins.Top = 15;
+  searchEdt.Margins.Left = 15;
+  searchEdt.Margins.Right = 15;
+  searchEdt.Margins.Bottom = 10;
+  searchEdt.Height = 40;
+  searchEdt.clBarcodeReader = False;
+}
+
+{
+  Form1 = TclForm.Create(Self);
+  
+  titleLbl = Form1.AddNewLabel(Form1,'titleLbl','UNIVERSITIES OF TÜRKİYE');
+  titleLbl.Align = alMostTop;
+  titleLbl.Height = 25;
+  titleLbl.Margins.Left = 20;
+  titleLbl.StyledSettings = ssFamily;
+  titleLbl.TextSettings.Font.Size = 20;
+  titleLbl.TextSettings.FontColor = clAlphaColor.clHexToColor('#66cc99');
+  SetSearchEdit;
+  
+  webPnl=Form1.AddNewPanel(Form1,'webPnl');
+  webPnl.Align=ALCenter;
+  webPnl.Height=Form1.clHeight;
+  webPnl.Width=Form1.clWidth;
+  webPnl.Visible = False;
+  
+  closePnl=Form1.AddNewProPanel(webPnl,'closePnl');
+  closePnl.Align = ALMostTop;
+  closePnl.Height = 40;
+  closePnl.Margins.Bottom = 3;
+  closePnl.clProSettings.BackgroundColor = clAlphaColor.clHexToColor('#ffffff');
+  closePnl.SetclProSettings(closePnl.clProSettings);
+  
+  closeBtn = Form1.AddNewProButton(closePnl,'closeBtn','');
+  closeBtn.Align = ALRight;
+  closeBtn.Width = 40;
+  Form1.SetImage(closeBtn,'https://clomosy.com/learn/xMark.png'); 
+  Form1.AddNewEvent(closeBtn,tbeOnClick,'BtnOnClick');
+  
+  xWeb= Form1.AddNewWebBrowser(webPnl,'xWeb');  
+  xWeb.Align = alClient;
+  
+  CreateListView;
+  CreateDesignerPanel;
+  createWebContainer;
+  
+  getwebRequest;
+  
+  Form1.Run;
+}

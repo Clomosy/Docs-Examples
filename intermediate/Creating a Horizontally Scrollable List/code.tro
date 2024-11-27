@@ -1,0 +1,50 @@
+Var
+  Form1 : TclForm;
+  mainPnl,listPnl : TclPanel;
+  Label1 : TclLabel;
+  horzScrollBox : TClHorzScrollBox;
+  i,j : Integer;
+
+void clickedComponent;
+var
+  clickedLabel:TClLabel;
+{
+  clickedLabel = TClLabel(Form1.Clsender);
+  ShowMessage(clickedLabel.cltagStr);
+}
+
+{
+  Form1 = TclForm.Create(self);
+  mainPnl = Form1.AddNewPanel(Form1,'mainPnl');
+  mainPnl.Align = ALTop;
+  mainPnl.Height = 100;
+  
+  horzScrollBox = Form1.AddNewHorzScrollBox(mainPnl,'horzScrollBox');
+  horzScrollBox.Align = alClient;
+  horzScrollBox.Margins.Left = 10;
+  horzScrollBox.Margins.Right = 10;
+  horzScrollBox.Margins.Top = 10;
+  horzScrollBox.ShowScrollBars = True;
+  
+  for (i = 1 to 10)
+  {
+    listPnl = Form1.AddNewPanel(horzScrollBox,'listPnl'+IntToStr(i));
+    listPnl.Align = ALMostLeft;
+    listPnl.Width = 100;
+    listPnl.Margins.Left =2;
+    listPnl.HitTest = false;
+  }
+  
+  for (j = 1 to 10)
+  {
+    Label1 = Form1.AddNewLabel(TclLabel(Form1.clFindComponent('listPnl'+IntToStr(j))),'Label'+IntToStr(j),'Test'+IntToStr(j));
+    Label1.Align = ALCenter;
+    Label1.Width = 100;
+    Label1.Height = 100;
+    Form1.AddNewEvent(Label1,tbeOnClick,'clickedComponent');
+    Label1.HitTest = true;
+    Label1.clTagStr = 'Label'+IntToStr(j);
+  }
+  
+  Form1.Run;
+}

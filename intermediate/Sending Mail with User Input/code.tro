@@ -1,0 +1,135 @@
+var
+  Form1:TclForm;
+  mainRow,mainCol1:TCLPanel;
+  mailTitleLbl,mailTextLbl,mailSendToLbl,mainCol1TitleLbl:TCLLabel;
+  mailTitleEdt,mailTextEdt,mailSendToEdt:TCLEdit;
+  mailTitleSection,mailTextSection,mailSendToSection,mailSendBtnSection,mainCol1TitleSection:TCLLAyout;
+  mailSendBtn:TCLButton;
+
+//Here, e-mail header, e-mail content and e-mail address information are received and sent via text.
+void MailSendBtnOnClick
+{
+  Clomosy.SendMailNoReplay(mailTitleEdt.Text,mailTextEdt.Text,mailSendToEdt.Text);
+}
+
+{
+  Clomosy.ResumeLocalEvent = False;
+  Form1=TclForm.Create(self);
+  
+  mainRow=Form1.AddNewPanel(Form1,'mainRow');
+  mainRow.Align=ALCenter;
+  mainRow.Height=275;
+  mainRow.StyleLookup='pushpanel';
+  
+  mainCol1=Form1.AddNewPanel(mainRow,'mainCol1');
+  mainCol1.Align=ALCenter;
+  mainCol1.Width=300;
+  mainCol1.Height=275;
+  
+  //                 MAIL COLUMN TITLE SECTION                    
+  
+  mainCol1TitleSection=Form1.AddNewLayout(mainCol1,'mainCol1TitleSection');
+  With mainCol1TitleSection Do {
+    Align=ALMostTop;
+    Height=50;
+  }
+  
+  mainCol1TitleLbl=Form1.AddNewLabel(mainCol1TitleSection,'mainCol1TitleLbl','MAIL');
+  With mainCol1TitleLbl Do {
+    StyledSettings = ssFamily;
+    TextSettings.Font.Size=30;
+    Align=ALCenter;
+    AutoSize=True;
+    TextSettings.WordWrap=True;
+    Margins.Left=40;
+  }
+  
+  //                 MAIL TITLE SECTION                    
+  
+  mailTitleSection=Form1.AddNewLayout(mainCol1,'mailTitleSection');
+  With mailTitleSection Do {
+    Align=ALMostTop;
+    Height=50;
+  }
+  
+  mailTitleLbl=Form1.AddNewLabel(mailTitleSection,'mailTitleLbl','Title:');
+  With mailTitleLbl Do {
+    StyledSettings = ssFamily;
+    TextSettings.Font.Size=15;
+    Align=ALMostLeft;
+    AutoSize=True;
+    TextSettings.WordWrap=True;
+    Margins.Left=10;
+  }
+  
+  mailTitleEdt=Form1.AddNewEdit(mailTitleSection,'mailTitleEdt','');
+  With mailTitleEdt Do {
+    Height=30;
+    width=160;
+  }
+  
+  //                 MAIL TEXT SECTION                    
+  
+  mailTextSection=Form1.AddNewLayout(mainCol1,'mailTextSection');
+  With mailTextSection Do {
+    Align=ALMostTop;
+    Height=50;
+  }
+  
+  mailTextLbl=Form1.AddNewLabel(mailTextSection,'mailTextLbl','Text:');
+  With mailTextLbl Do {
+    StyledSettings = ssFamily;
+    TextSettings.Font.Size=15;
+    Align=ALMostLeft;
+    AutoSize=True;
+    TextSettings.WordWrap=True;
+    Margins.Left=10;
+  }
+  
+  mailTextEdt=Form1.AddNewEdit(mailTextSection,'mailTextEdt','');
+  With mailTextEdt Do {
+    Height=30;
+    Width=160;
+  }
+  
+  //                 MAIL SENDTO SECTION                    
+  
+  mailSendToSection=Form1.AddNewLayout(mainCol1,'mailSendToSection');
+  With mailSendToSection Do {
+    Align=ALMostTop;
+    Height=50;
+  }
+  
+  mailSendToLbl=Form1.AddNewLabel(mailSendToSection,'mailSendToLbl','Send To:');
+  With mailSendToLbl Do {
+    StyledSettings = ssFamily;
+    TextSettings.Font.Size=15;
+    Align=ALMostLeft;
+    AutoSize=True;
+    TextSettings.WordWrap=True;
+    Margins.Left=10;
+  }
+  
+  mailSendToEdt=Form1.AddNewEdit(mailSendToSection,'mailSendToEdt','');
+  With mailSendToEdt Do {
+    Height=30;
+    Width=160;
+  }
+  
+  //                 MAIL SEND BTN SECTION                    
+  
+  mailSendBtnSection=Form1.AddNewLayout(mainCol1,'mailSendBtnSection');
+  With mailSendBtnSection Do {
+    Align=ALTop;
+    Height=50;
+  }
+  
+  mailSendBtn=Form1.AddNewButton(mailSendBtnSection,'mailSendBtn','Send');
+  With mailSendBtn Do {
+    Align=ALTop;
+    Height=50;
+  }
+  Form1.AddNewEvent(mailSendBtn,tbeOnClick, 'MailSendBtnOnClick' );
+  
+  Form1.Run;
+}

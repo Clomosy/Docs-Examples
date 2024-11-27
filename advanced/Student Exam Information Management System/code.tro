@@ -1,0 +1,347 @@
+Var   
+ Form1:TClForm;
+ RightLyt : TclLayout;
+ PListView : TClProListView;
+ DPanl : TClProListViewDesignerPanel;
+ ShowBtn,DeleteBtn,UpdateBtn,AlterBtn : TClProButton;
+ StudentID,StudentName,StudentSurname,Subject,VNote,FNote : TClProLabel;
+ StudentIDEdt,StudentNameEdt,StudentSurnameEdt,SubjectEdt,VNoteEdt,FNoteEdt : TclProEdit;
+
+ Void ClearEdtText
+ {
+   StudentIDEdt.Text='';
+   StudentNameEdt.Text='';
+   StudentSurnameEdt.Text='';
+   SubjectEdt.Text='';
+   VNoteEdt.Text='';
+   FNoteEdt.Text='';
+ }
+ 
+ void GetData;
+ var
+  Qry : TClSQLiteQuery;
+ {
+  
+  try
+    Qry = Clomosy.DBSQLiteQueryWith('Select ''Student No: ''||StudentID as StudentID,''Student Name: ''||StudentName as StudentName,''Student Surname: ''||StudentSurname as StudentSurname, ''Subject: ''||Subject as Subject,''V. Note: ''||VNote as VNote,''F. Note: ''||FNote as FNote From Student_Exam_Info');
+    Qry.OpenOrExecute;
+    
+    if (Qry.Found)
+    {
+     PListView.clLoadProListViewDataFromDataset(Qry);
+    }
+    else
+    {
+      PListView.Clearlist;
+    }
+  except
+    ShowMessage('Exception Class: '+LastExceptionClassName+' Exception GetData Message: '+LastExceptionMessage);
+  }      
+ }
+ 
+ Void DataInsert
+ {
+   if ((StudentIDEdt.Text == '')||(StudentNameEdt.Text == '')||(StudentSurnameEdt.Text == '')||(SubjectEdt.Text == '')||(VNoteEdt.Text == '')||(FNoteEdt.Text == ''))
+   {
+     ShowMessage('Fill in the Boxes...');
+   }
+   else
+   {
+     try
+       Clomosy.DBSQLiteQuery.SQL.Text ='Insert Into Student_Exam_Info(StudentID,StudentName,StudentSurname,Subject,VNote,FNote)Values('+QuotedStr(StudentIDEdt.Text)+','
+       +QuotedStr(StudentNameEdt.Text)+','+QuotedStr(StudentSurnameEdt.Text)+','+QuotedStr(SubjectEdt.Text)+','+VNoteEdt.Text +','+FNoteEdt.Text +')';
+       Clomosy.DBSQLiteQuery.OpenOrExecute;
+       GetData;
+       ClearEdtText;
+     except
+      ShowMessage('Exception Class: '+LastExceptionClassName+' Exception GetData Message: '+LastExceptionMessage);
+     }
+   }
+ }
+ 
+ Void onItemClicked
+ {
+   ShowMessage(clGetStringAfter(PListView.clSelectedItemData(clCaption),': '));
+   StudentIDEdt.Text=clGetStringAfter(PListView.clSelectedItemData(clCaption),': ');
+   StudentNameEdt.Text=clGetStringAfter(PListView.clSelectedItemData(clText),': ');
+   StudentSurnameEdt.Text=clGetStringAfter(PListView.clSelectedItemData(clText1),': ');
+   SubjectEdt.Text=clGetStringAfter(PListView.clSelectedItemData(clText2),': ');
+   VNoteEdt.Text=clGetStringAfter(PListView.clSelectedItemData(clText3),': ');
+   FNoteEdt.Text=clGetStringAfter(PListView.clSelectedItemData(clText4),': ');
+ }
+ 
+ Void DataDelete
+ {
+   try
+      if (StudentIDEdt.Text <> '')
+      {
+     Clomosy.DBSQLiteQuery.SQL.Text = 'Delete From Student_Exam_Info Where StudentID = '+QuotedStr(StudentIDEdt.Text);
+     Clomosy.DBSQLiteQuery.OpenOrExecute;
+     GetData;
+     ClearEdtText;
+     } else{
+       ShowMessage('Please do not leave the student ID field empty.');
+     }
+   except
+      ShowMessage('Exception Class: '+LastExceptionClassName+' Exception GetData Message: '+LastExceptionMessage);
+   }
+ }
+ 
+ Void DataUpdate
+ {
+   if ((StudentIDEdt.Text == '')||(StudentNameEdt.Text == '')||(StudentSurnameEdt.Text == '')||(SubjectEdt.Text == '')||(VNoteEdt.Text == '')||(FNoteEdt.Text == ''))
+   {
+     ShowMessage('Fill in the Boxes...');
+   }
+   else
+   {
+     try
+       Clomosy.DBSQLiteQuery.SQL.Text = 'Update Student_Exam_Info Set StudentID ='+QuotedStr(StudentIDEdt.Text)+',StudentName ='+QuotedStr(StudentNameEdt.Text)+
+       ',StudentSurname ='+QuotedStr(StudentSurnameEdt.Text)+',Subject ='+QuotedStr(SubjectEdt.Text)+',VNote ='+QuotedStr(VNoteEdt.Text)+
+       ',FNote ='+QuotedStr(FNoteEdt.Text)+'Where StudentID ='+QuotedStr(StudentIDEdt.Text);
+       Clomosy.DBSQLiteQuery.OpenOrExecute;
+       GetData;
+       ClearEdtText;
+     except
+      ShowMessage('Exception Class: '+LastExceptionClassName+' Exception GetData Message: '+LastExceptionMessage);
+     }
+   }
+ }
+
+  void SqLiteInsertData;
+  {
+    try
+      Clomosy.DBSQLiteQuery.Sql.Text = '
+    INSERT INTO Student_Exam_Info (StudentID, StudentName, StudentSurname,Subject,VNote,FNote) VALUES (''123456'',' +QuotedStr('John')+',' +QuotedStr('Doe')+',' +QuotedStr('Mathematics')+',' +QuotedStr('80')+',' +QuotedStr('90')+');
+    INSERT INTO Student_Exam_Info (StudentID, StudentName, StudentSurname,Subject,VNote,FNote) VALUES (''789456'', ''Jane'', ''Smith'', ''Science'', ''75'', ''85'');
+    INSERT INTO Student_Exam_Info (StudentID, StudentName, StudentSurname,Subject,VNote,FNote) VALUES (''753951'', ''Michael'', ''Brown'', ''History'', ''85'', ''70'');
+    INSERT INTO Student_Exam_Info (StudentID, StudentName, StudentSurname,Subject,VNote,FNote) VALUES (''852654'', ''Emily'', ''Davis'', ''Biology'', ''70'', ''80'');
+    INSERT INTO Student_Exam_Info (StudentID, StudentName, StudentSurname,Subject,VNote,FNote) VALUES (''956754'', ''Daniel'', ''Wilson'', ''History'', ''81'', ''84'');
+    INSERT INTO Student_Exam_Info (StudentID, StudentName, StudentSurname,Subject,VNote,FNote) VALUES (''124326'', ''Emma'', ''Johnson'', ''English'', ''87'', ''93'');';
+      Clomosy.DBSQLiteQuery.OpenOrExecute;
+      
+      ShowMessage('Adding data to the table was successful!');
+    except
+     ShowMessage('Exception Class: '+LastExceptionClassName+' Exception SqLiteInsertData Message: '+LastExceptionMessage);
+    }
+  }
+ 
+   void SqLiteConnectionCreateTable;
+  var
+    TableExists: Boolean;
+  {
+    try
+      Clomosy.DBSQLiteConnect(Clomosy.AppFilesPath + 'School.db3', '');
+ 
+      // Check if the table exists
+      Clomosy.DBSQLiteQuery.Sql.Text = 'SELECT name FROM sqlite_master WHERE type="table" AND name="Student_Exam_Info";';
+      Clomosy.DBSQLiteQuery.OpenOrExecute;
+      
+      // Check the results
+      TableExists = not Clomosy.DBSQLiteQuery.Eof;
+      
+      // Create the table if it does not exist
+      if not (TableExists)
+      {
+        Clomosy.DBSQLiteQuery.Sql.Text = 'CREATE TABLE Student_Exam_Info(StudentID TEXT NOT NULL,
+        StudentName TEXT NOT NULL,
+        StudentSurname TEXT NOT NULL,
+        Subject TEXT NOT NULL,
+        VNote TEXT NOT NULL,
+        FNote TEXT NOT NULL)';
+        Clomosy.DBSQLiteQuery.OpenOrExecute;
+        
+        ShowMessage('Table successfully added to the database!');
+        SqLiteInsertData;
+      } else
+      {
+        ShowMessage('The Products table already exists.');
+      }
+
+    except
+     ShowMessage('Exception Class: '+LastExceptionClassName+' Exception SqLiteConnectionCreateTable Message: '+LastExceptionMessage);
+    }
+  }
+
+
+void mainScreen;
+{
+  Form1 =TClForm.Create(Self);
+   
+   PListView = Form1.AddNewProListView(Form1,'PListView');
+   PListView.Align = alLeft;
+   PListView.Width = Form1.clWidth/2;
+   PListView.Margins.Right = 10;
+   PListView.Margins.Bottom = 10;
+   PListView.Margins.Left = 10;
+   PListView.clProSettings.ViewType = lvWaterFall;
+   PListView.clProSettings.IsRound = True;
+   PListView.clProSettings.IsFill = True;
+   PListView.clProSettings.ColCount = 1;
+   PListView.clProSettings.ItemHeight = 150;
+   PListView.clProSettings.ItemSpace = 5;
+   PListView.clProSettings.BorderColor = clAlphaColor.clHexToColor('#20B2AA');
+   PListView.clProSettings.BorderWidth = 1;
+   PListView.clProSettings.RoundWidth = 3;
+   PListView.clProSettings.RoundHeight = 3;
+   PListView.SetclProSettings(PListView.clProSettings);
+   
+   DPanl = Form1.AddNewProListViewDesignerPanel(PListView,'DPanl'); 
+   DPanl.Align = alTop;
+   DPanl.Height = 80;
+   DPanl.clProSettings.IsRound = True;
+   DPanl.clProSettings.IsFill = True;
+   DPanl.clProSettings.ItemHeight = 150;
+   DPanl.clProSettings.BackgroundColor = clAlphaColor.clHexToColor('#48D1CC');
+   DPanl.clProSettings.BorderColor = clAlphaColor.clHexToColor('#20B2AA');
+   DPanl.clProSettings.BorderWidth = 2;
+   DPanl.clProSettings.RoundWidth = 10;
+   DPanl.clProSettings.RoundHeight = 10;
+   DPanl.SetclProSettings(DPanl.clProSettings);
+   PListView.SetDesignerPanel(DPanl);
+   Form1.AddNewEvent(PListView,tbeOnItemClick,'onItemClicked');
+   
+   StudentID = Form1.AddNewProLabel(DPanl,'StudentID','-');
+   StudentID.Align = alMostTop;
+   StudentID.Margins.Top = 5;
+   StudentID.Height = DPanl.Height/6;
+   StudentID.clProSettings.FontColor = clAlphaColor.clHexToColor('#006666');
+   StudentID.clProSettings.FontSize = 15;
+   StudentID.clProSettings.TextSettings.Font.Style = [fsBold];
+   StudentID.clProSettings.FontVertAlign = palcenter;
+   StudentID.clProSettings.FontHorzAlign = palLeading;
+   StudentID.clProSettings.RoundWidth = 10;
+   StudentID.clProSettings.RoundHeight = 10;
+   StudentID.SetclProSettings(StudentID.clProSettings);
+   DPanl.AddPanelObject(StudentID,clCaption);
+   
+   StudentName = Form1.AddNewProLabel(DPanl,'StudentName','-');
+   StudentName.Align = alMostTop;
+   StudentName.Margins.Top = 5;
+   StudentName.Height = DPanl.Height/5;
+   StudentName.SetclProSettings(StudentID.clProSettings);
+   DPanl.AddPanelObject(StudentName,clText);
+   
+   StudentSurname = Form1.AddNewProLabel(DPanl,'StudentSurname','-');
+   StudentSurname.Align = alMostTop;
+   StudentSurname.Margins.Top = 5;
+   StudentSurname.Height = DPanl.Height/5;
+   StudentSurname.SetclProSettings(StudentID.clProSettings);
+   DPanl.AddPanelObject(StudentSurname,clText1);
+   
+   Subject = Form1.AddNewProLabel(DPanl,'Subject','-');
+   Subject.Align = alMostTop;
+   Subject.Margins.Top = 5;
+   Subject.Height = DPanl.Height/5;
+   Subject.SetclProSettings(StudentID.clProSettings);
+   DPanl.AddPanelObject(Subject,clText2);
+   
+   VNote = Form1.AddNewProLabel(DPanl,'VNote','-');
+   VNote.Align = alMostTop;
+   VNote.Margins.Top = 5;
+   VNote.Height = DPanl.Height/5;
+   VNote.SetclProSettings(StudentID.clProSettings);
+   DPanl.AddPanelObject(VNote,clText3);
+   
+   FNote = Form1.AddNewProLabel(DPanl,'FNote','-');
+   FNote.Align = alMostTop;
+   FNote.Margins.Top = 5;
+   FNote.Height = DPanl.Height/5;
+   FNote.SetclProSettings(StudentID.clProSettings);
+   DPanl.AddPanelObject(FNote,clText4);
+   
+   
+   RightLyt = Form1.AddNewLayout(Form1,'RightLyt');
+   RightLyt.Align=alRight;
+   RightLyt.Margins.Right = 20; 
+   RightLyt.Width = (Form1.clWidth/2)-50;
+   
+   ShowBtn = Form1.AddNewProButton(RightLyt,'ShowBtn','Show Data');
+   ShowBtn.Align = alMostTop;
+   ShowBtn.Height = RightLyt.Height/11-10;
+   ShowBtn.clProSettings.IsFill = True;
+   ShowBtn.clProSettings.IsRound = True;
+   ShowBtn.clProSettings.BackgroundColor = clAlphaColor.clHexToColor('#006666');
+   ShowBtn.clProSettings.FontColor = clAlphaColor.clHexToColor('#FFFFFF');
+   ShowBtn.clProSettings.FontSize = 15;
+   ShowBtn.clProSettings.RoundWidth = 10;
+   ShowBtn.clProSettings.RoundHeight = 10;
+   ShowBtn.clProSettings.FontVertAlign = palcenter;
+   ShowBtn.clProSettings.FontHorzAlign = palCenter;
+   ShowBtn.clProSettings.TextSettings.Font.Style = [fsBold];
+   ShowBtn.SetclProSettings(ShowBtn.clProSettings);
+   Form1.AddNewEvent(ShowBtn,tbeOnClick,'GetData');
+   
+   DeleteBtn = Form1.AddNewProButton(RightLyt,'DeleteBtn','Delete Data');
+   DeleteBtn.Align = alMostTop;
+   DeleteBtn.Height = RightLyt.Height/11-10;
+   DeleteBtn.Margins.Top = 10;
+   DeleteBtn.SetclProSettings(ShowBtn.clProSettings);
+   Form1.AddNewEvent(DeleteBtn,tbeOnClick,'DataDelete');
+   
+   StudentIDEdt = Form1.AddNewProEdit(RightLyt,'StudentIDEdt','School No');
+   StudentIDEdt.Align = alMostTop;
+   StudentIDEdt.Height = RightLyt.Height/11-10;
+   StudentIDEdt.Margins.Top = 10;
+   StudentIDEdt.SetclProSettings(ShowBtn.clProSettings);
+   StudentIDEdt.clTypeOfField = taFloat;
+   StudentIDEdt.MaxLength=10;
+   
+   StudentNameEdt = Form1.AddNewProEdit(RightLyt,'StudentNameEdt','Student Name');
+   StudentNameEdt.Align = alMostTop;
+   StudentNameEdt.Height = RightLyt.Height/11-10;
+   StudentNameEdt.Margins.Top = 10;
+   StudentNameEdt.SetclProSettings(ShowBtn.clProSettings);
+   StudentNameEdt.MaxLength=15;
+   
+   StudentSurnameEdt = Form1.AddNewProEdit(RightLyt,'StudentSurnameEdt','Student Surname');
+   StudentSurnameEdt.Align = alMostTop;
+   StudentSurnameEdt.Height = RightLyt.Height/11-10;
+   StudentSurnameEdt.Margins.Top = 10;
+   StudentSurnameEdt.SetclProSettings(ShowBtn.clProSettings);
+   StudentSurnameEdt.MaxLength=15;
+   
+   SubjectEdt = Form1.AddNewProEdit(RightLyt,'SubjectEdt','Subject');
+   SubjectEdt.Align = alMostTop;
+   SubjectEdt.Height = RightLyt.Height/11-10;
+   SubjectEdt.Margins.Top = 10;
+   SubjectEdt.SetclProSettings(ShowBtn.clProSettings);
+   SubjectEdt.MaxLength=30;
+   
+   VNoteEdt = Form1.AddNewProEdit(RightLyt,'VNoteEdt','V. Note');
+   VNoteEdt.Align = alMostTop;
+   VNoteEdt.Height = RightLyt.Height/11-10;
+   VNoteEdt.Margins.Top = 10;
+   VNoteEdt.SetclProSettings(ShowBtn.clProSettings);
+   VNoteEdt.clTypeOfField = taFloat;
+   VNoteEdt.MaxLength=3;
+   
+   FNoteEdt = Form1.AddNewProEdit(RightLyt,'FNoteEdt','F. Note');
+   FNoteEdt.Align = alMostTop;
+   FNoteEdt.Height = RightLyt.Height/11-10;
+   FNoteEdt.Margins.Top = 10;
+   FNoteEdt.SetclProSettings(ShowBtn.clProSettings);
+   FNoteEdt.clTypeOfField = taFloat;
+   FNoteEdt.MaxLength=3;
+   
+   AlterBtn = Form1.AddNewProButton(RightLyt,'AlterBtn','Add Data');
+   AlterBtn.Align = alMostTop;
+   AlterBtn.Height = RightLyt.Height/11-10;
+   AlterBtn.Margins.Top = 10;
+   AlterBtn.SetclProSettings(ShowBtn.clProSettings);
+   Form1.AddNewEvent(AlterBtn,tbeOnClick,'DataInsert');
+   
+   UpdateBtn = Form1.AddNewProButton(RightLyt,'UpdateBtn','Update Data');
+   UpdateBtn.Align = alMostTop;
+   UpdateBtn.Height = RightLyt.Height/11-10;
+   UpdateBtn.Margins.Top = 10;
+   UpdateBtn.SetclProSettings(ShowBtn.clProSettings);
+   Form1.AddNewEvent(UpdateBtn,tbeOnClick,'DataUpdate');
+   Form1.Run;
+}
+ { 
+   mainScreen;
+   SqLiteConnectionCreateTable;
+   GetData;
+   
+ }

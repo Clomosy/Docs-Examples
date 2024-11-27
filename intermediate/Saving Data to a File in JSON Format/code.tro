@@ -1,0 +1,138 @@
+ var
+   Form1: TclForm;
+   MyFileStr: String;
+   clQueryLoadFile: TclJsonQuery;
+   noteMemo: TCLMemo;
+   savebutton: TClProButton;
+   nameEdit,surnameEdit,ageEdit: TclProEdit;
+   namelbl,surnamelbl,agelbl: TClProLabel;
+   editLyt : TClLayout;
+ 
+ void UpdateOrInsertParameterValue;
+ {
+   if nameEdit.Text == '' exit;
+   clQueryLoadFile = TclJsonQuery.Create(nil);
+   try
+     try
+       clQueryLoadFile = Clomosy.ClDataSetFromJSON(noteMemo.Text);
+       with clQueryLoadFile do
+       {
+         if (RecordCount > 0)
+         {
+           Filtered = False;
+           Filter = 'name = '+QuotedStr(nameEdit.Text);
+           Filtered = True;
+           
+           if (Found) 
+             Edit;
+           else
+             Insert;
+           
+           FieldByName('name').AsString = nameEdit.Text;
+           FieldByName('surname').AsString = surnameEdit.Text;      
+           FieldByName('age').AsString = ageEdit.Text;
+           
+           Post(False);
+           
+           clQueryLoadFile.Filtered = False;
+           noteMemo.Text = '';
+           noteMemo.Lines.Add(clQueryLoadFile.getJSONString);
+           noteMemo.Lines.SavetoFile(MyFileStr,0);  
+         }
+         else
+         {
+           noteMemo.Text = '{"name":"'+nameEdit.Text+'","surname":"'+surnameEdit.Text+'","age":"'+ageEdit.Text+'"}';
+           noteMemo.Lines.SavetoFile(MyFileStr,0); 
+         }
+       }
+     except
+     ShowMessage('[001] Exception Class: '+LastExceptionClassName+' Exception Message: '+LastExceptionMessage);
+     exit;
+     }
+   finally
+   
+     nameEdit.Text = '';
+     surnameEdit.Text = '';
+     ageEdit.Text = '';
+     ShowMessage('Saved to File');
+   }
+ }
+ {
+   Form1 = TclForm.Create(Self);
+   
+   noteMemo = Form1.AddNewMemo(Form1,'noteMemo','');
+   noteMemo.Align = alMostTop;
+   noteMemo.StyledSettings = ssFamily;
+   noteMemo.Height = 120;
+   noteMemo.TextSettings.WordWrap = True;
+   noteMemo.ReadOnly = True;
+   
+   MyFileStr = clPathCombine('MyFile.txt', Clomosy.AppFilesPath);
+   if clFileExists('MyFile.txt', Clomosy.AppFilesPath)
+   {
+     noteMemo.lines.LoadFromFile(MyFileStr,0);
+   }
+   else 
+   {
+     noteMemo.lines.SavetoFile(MyFileStr,0);
+   }
+   editLyt = Form1.AddNewLayout(Form1,'editLyt');
+   editLyt.Align=alTop;
+   editLyt.Height = 320;
+   editLyt.Width = 200;
+   editLyt.Margins.Bottom = 60;
+   editLyt.Margins.Top = 20;
+   
+   namelbl = Form1.AddNewProLabel(editLyt,'namelbl','Name');
+   namelbl.Align = alTop;
+   namelbl.Height = 30;
+   namelbl.clProSettings.FontColor = clAlphaColor.clHexToColor('#0091ff');
+   namelbl.clProSettings.FontSize = 18;
+   namelbl.clProSettings.FontVertAlign = palcenter;//palLeading , palCenter , palTrailing
+   namelbl.clProSettings.FontHorzAlign = palLeading;
+   namelbl.clProSettings.TextSettings.Font.Style = [fsBold];
+   namelbl.SetclProSettings(namelbl.clProSettings);
+   
+   nameEdit = Form1.AddNewProEdit(editLyt,'nameEdit','Name');
+   nameEdit.Align = alTop;
+   nameEdit.Height = 45;
+   nameEdit.clProSettings.BorderColor = clAlphaColor.clHexToColor('#0091ff');
+   nameEdit.clProSettings.BorderWidth = 2;
+   nameEdit.clProSettings.IsRound = True;
+   nameEdit.clProSettings.RoundHeight = 10;
+   nameEdit.clProSettings.RoundWidth = 10;
+   nameEdit.SetclProSettings(nameEdit.clProSettings);
+   
+   surnamelbl = Form1.AddNewProLabel(editLyt,'surnamelbl','Surname');
+   surnamelbl.Align = alTop;
+   surnamelbl.Height = 30;
+   surnamelbl.Margins.Top = 10;
+   surnamelbl.SetclProSettings(namelbl.clProSettings);
+   
+   surnameEdit = Form1.AddNewProEdit(editLyt,'surnameEdit','Surname');
+   surnameEdit.Align = alTop;
+   surnameEdit.Height = 45;
+   surnameEdit.SetclProSettings(nameEdit.clProSettings);
+   
+   
+   agelbl = Form1.AddNewProLabel(editLyt,'agelbl','Age');
+   agelbl.Align = alTop;
+   agelbl.Height = 30;
+   agelbl.Margins.Top = 10;
+   agelbl.SetclProSettings(namelbl.clProSettings);
+   
+   ageEdit = Form1.AddNewProEdit(editLyt,'ageEdit','Age');
+   ageEdit.Align = alTop;
+   ageEdit.Height = 45;
+   ageEdit.clTypeOfField = taFloat;
+   ageEdit.SetclProSettings(nameEdit.clProSettings);
+   
+   savebutton = Form1.AddNewProButton(Form1,'savebutton','Save');
+   savebutton.Align = alMostBottom;
+   savebutton.Height = 70;
+   savebutton.Margins.Bottom = 80;
+   Form1.SetImage(savebutton,'https://clomosy.com/demos/foodInformationBox.png'); 
+   Form1.AddNewEvent(savebutton,tbeOnClick,'UpdateOrInsertParameterValue');
+   
+   Form1.Run;
+ }
