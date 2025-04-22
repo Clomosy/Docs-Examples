@@ -1,0 +1,100 @@
+function CheckTableExists(ATableName: String): Boolean;
+var
+  TableExists: Boolean;
+  Qry : TClSQLiteQuery;
+{
+  Qry = Clomosy.DBSQLiteQueryWith('SELECT * from '+ATableName+'');
+  Qry.OpenOrExecute;
+
+  if not (Qry.Found)
+  {
+    Result = False;
+  }else{ 
+    Result = True;
+  }
+}
+
+
+void InitializeRecordsTable;
+var
+  TableExists: Boolean;
+{
+  try
+    Clomosy.DBSQLiteQuery.Sql.Text = 'SELECT name FROM sqlite_master WHERE type="table" AND name="Records";';
+    Clomosy.DBSQLiteQuery.OpenOrExecute;
+    
+    TableExists = not Clomosy.DBSQLiteQuery.Eof;
+    
+    if not (TableExists)
+    {
+      Clomosy.DBSQLiteQuery.Sql.Text = 'CREATE TABLE Records(
+      RecordID INTEGER PRIMARY KEY AUTOINCREMENT, 
+      UploaderName TEXT NOT NULL,
+      LocationInfo TEXT,  
+      Note TEXT, 
+      LicensePlate TEXT,  
+      NationalID TEXT, 
+      IBAN TEXT,
+      FileNumber TEXT,
+      PolicyNumber TEXT,
+      DateOfBirth DATE,
+      CreationDate DATETIME DEFAULT CURRENT_TIMESTAMP)';
+      Clomosy.DBSQLiteQuery.OpenOrExecute;
+      
+      ShowMessage('Table successfully added to the database!');
+    }
+  except
+    ShowMessage('002 :Exception Class: '+LastExceptionClassName+' Exception Message: '+LastExceptionMessage);
+  }
+}
+
+void InitializeImagesTable;
+var
+  TableExists: Boolean;
+{
+  try
+    Clomosy.DBSQLiteQuery.Sql.Text = 'SELECT name FROM sqlite_master WHERE type="table" AND name="Images";';
+    Clomosy.DBSQLiteQuery.OpenOrExecute;
+    
+    TableExists = not Clomosy.DBSQLiteQuery.Eof;
+    
+    if not (TableExists)
+    {
+      Clomosy.DBSQLiteQuery.Sql.Text = 'CREATE TABLE Images(
+      ImageID INTEGER PRIMARY KEY AUTOINCREMENT,
+      RecordID INTEGER NOT NULL, 
+      FileName TEXT NOT NULL,
+      UploadDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (RecordID) REFERENCES Records(RecordID) ON DELETE CASCADE)';
+      Clomosy.DBSQLiteQuery.OpenOrExecute;
+      
+      ShowMessage('Table successfully added to the database!');
+    }
+  except
+    ShowMessage('003 :Exception Class: '+LastExceptionClassName+' Exception Message: '+LastExceptionMessage);
+  }
+}
+
+void SqLiteConnectionCreateTable;
+{
+  try
+    Clomosy.DBSQLiteConnect(Clomosy.AppFilesPath + 'VehicleRegistration.db3', '');
+    
+    InitializeRecordsTable;
+    InitializeImagesTable;
+    
+  except
+   ShowMessage('001 :Exception Class: '+LastExceptionClassName+' Exception Message: '+LastExceptionMessage);
+  }
+}
+
+void InsertImageToDatabase(AImageStr);
+{
+  try
+    Clomosy.DBSQLiteQuery.SQL.Text = 'INSERT INTO Images (RecordID, FileName) VALUES (' + QuotedStr(Clomosy.GlobalVariableInteger) + ','+ QuotedStr(AImageStr)+ ')';
+    Clomosy.DBSQLiteQuery.OpenOrExecute;
+    ShowMessage('Image uploaded.');
+  except
+    ShowMessage('006: Exception class: ' + LastExceptionClassName + ' Exception Message: ' + LastExceptionMessage+'insert');
+  } 
+}
