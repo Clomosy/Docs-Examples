@@ -1,0 +1,58 @@
+uses uDatabaseManager;
+Var   
+   MainForm : TclForm;
+   AddCarBtn,ListCarBtn : TClProButton;
+   MainPnl : TclPanel;
+
+void OnAddCarBtnClick;
+{
+  Clomosy.RunUnit('uAddCar');
+}
+
+void OnListCarBtnClick;
+{
+  if (uDatabaseManager.CheckTableExists('Records'))
+    Clomosy.RunUnit('uListCar');
+  else
+    ShowMessage('No vehicle registration found. Please register a vehicle.');
+  
+}
+
+ {
+  Clomosy.ClearTemporary; 
+
+  MainForm = TclForm.Create(nil);
+  uDatabaseManager.SqLiteConnectionCreateTable;
+
+  MainPnl = MainForm.AddNewPanel(MainForm,'MainPnl');
+  MainPnl.Align = AlCenter;
+  MainPnl.Width = MainForm.clWidth;
+  MainPnl.Height= MainForm.clheight / 2;
+  
+  AddCarBtn = MainForm.AddNewProButton(MainPnl,'AddCarBtn','Vehicle Registration Process');
+  AddCarBtn.Align = AlMostTop;
+  AddCarBtn.Height = MainPnl.Height / 4;
+  AddCarBtn.MArgins.Bottom = 10;
+  AddCarBtn.Margins.Right = 10;
+  AddCarBtn.Margins.Left = 10;
+  AddCarBtn.clProSettings.FontSize = 20;
+  AddCarBtn.clProSettings.BorderWidth = 2;
+  AddCarBtn.clProSettings.BorderColor = clAlphaColor.clHexToColor('#7674be');
+  AddCarBtn.clProSettings.IsRound = True;
+  AddCarBtn.clProSettings.RoundHeight = 20;
+  AddCarBtn.clProSettings.RoundWidth = 20;
+  AddCarBtn.clProSettings.BackgroundColor = clAlphaColor.clHexToColor('#bdbcdc');
+  AddCarBtn.SetclProSettings(AddCarBtn.clProSettings);
+  MainForm.AddNewEvent(AddCarBtn,tbeOnClick,'OnAddCarBtnClick');
+  
+  ListCarBtn = MainForm.AddNewProButton(MainPnl,'ListCarBtn','Vehicle Listing');
+  ListCarBtn.Align = AlTop;
+  ListCarBtn.Height = MainPnl.Height / 4;
+  ListCarBtn.Margins.Right = 10;
+  ListCarBtn.Margins.Left = 10;
+  ListCarBtn.SetclProSettings(AddCarBtn.clProSettings);
+  MainForm.AddNewEvent(ListCarBtn,tbeOnClick,'OnListCarBtnClick');  
+  
+  
+  MainForm.Run;
+ }
