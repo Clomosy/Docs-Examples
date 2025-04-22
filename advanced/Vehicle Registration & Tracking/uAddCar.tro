@@ -1,0 +1,339 @@
+uses uDatabaseManager;
+var   
+  AddCarForm : TclForm;
+  MainVScrollBox,ImageRecordPnl,ImageContainerPnl,LocationPnl : TclPanel;
+  EdtUploaderName,EdtAddNote,EdtPlateNumber,
+  EdtNationalID,
+  EdtIBAN,
+  EdtFileNumber,
+  EdtPolicyNumber:TclProEdit;
+  LblLocationInfo : TclProLabel;
+  LblBirthDate,lblLicensePlate : TclLabel;
+  DateEdtBirthDate : TClProDateEdit;
+  
+  BtnGetLocationInfo,BtnAddImage,BtnUploadImage,BtnSuccessData,BtnAddRecordTable:TClProButton;
+  CameraImg : TClImage;
+  LMemStream: TCLMemoryStream;
+  Latitude,Longitude : String;
+  clRest:TclRest;
+  QryLocationData:TCLJSONQuery;
+  qryString,format,ImageStr:String;
+  MainPnlHeightSize : Integer;
+
+void getImageBase64;
+{
+  
+    if ((CameraImg.Bitmap.Width == 0) || (CameraImg.Bitmap.Height == 0))
+    {
+      ShowMessage('Please select or take a photo.');
+    }else
+    {
+      try
+        CameraImg.Bitmap.SaveToStream(LMemStream);
+        ImageStr = LMemStream.AsBase64;
+        uDatabaseManager.InsertImageToDatabase(ImageStr);
+        ImageStr = '';
+        CameraImg.MultiResBitmap.Clear;
+        
+      except
+        ShowMessage(' 001: Exception Class: '+LastExceptionClassName+' Exception Message: '+LastExceptionMessage);
+      }
+      
+    }
+}
+void addImageClick;
+{
+  Clomosy.ImageChooser(AddCarForm, CameraImg);
+}
+
+void recordSuccess;
+{
+  Clomosy.GlobalVariableInteger = nil;
+  Clomosy.GlobalVariableString = '';
+  ImageRecordPnl.Visible = False;
+  MainVScrollBox.Visible = True;
+  lblLicensePlate.Text = '';
+  ShowMessage('Registration completed. A new record can be created.');
+  
+}
+
+void InsertImages;
+{
+  ImageRecordPnl = AddCarForm.AddNewPanel(AddCarForm,'ImageRecordPnl');
+  ImageRecordPnl.Align = AlClient;
+  ImageRecordPnl.Margins.Top = 10;
+  ImageRecordPnl.Margins.Bottom = 10;
+  ImageRecordPnl.Margins.Left = 10;
+  ImageRecordPnl.Margins.Right = 10;
+  ImageRecordPnl.Visible = False;
+  
+  lblLicensePlate= AddCarForm.AddNewLabel(ImageRecordPnl,'lblLicensePlate','-');
+  lblLicensePlate.StyledSettings = ssFamily;
+  lblLicensePlate.TextSettings.Font.Size=18;
+  lblLicensePlate.Align = alMostTop;
+  lblLicensePlate.Margins.Left= 10;
+  lblLicensePlate.Margins.Top= 10; 
+  lblLicensePlate.Height = 50;
+  lblLicensePlate.TextSettings.HorzAlign = taLeading;
+  lblLicensePlate.WordWrap = True;
+  lblLicensePlate.AutoSize = True;
+  
+  CameraImg = AddCarForm.AddNewImage(ImageRecordPnl, 'CameraImg');
+  CameraImg.Align = AlClient;
+  CameraImg.Margins.Top = 30;
+  CameraImg.Margins.Bottom = 30;
+  CameraImg.Margins.Left = 30;
+  CameraImg.Margins.Right = 30;
+  
+  ImageContainerPnl = AddCarForm.AddNewPanel(ImageRecordPnl,'ImageContainerPnl');
+  ImageContainerPnl.Align = AlBottom;
+  ImageContainerPnl.Height = 70;
+  ImageContainerPnl.Margins.Bottom = 10;
+  
+  BtnAddImage = AddCarForm.AddNewProButton(ImageContainerPnl, 'BtnAddImage', 'Add Image');
+  BtnAddImage.Align=alClient;
+  BtnAddImage.Margins.Bottom = 10;
+  BtnAddImage.SetclProSettings(BtnGetLocationInfo.clProSettings);
+  AddCarForm.AddNewEvent(BtnAddImage, tbeOnClick, 'getImageBase64');
+  
+  BtnUploadImage = AddCarForm.AddNewProButton(ImageContainerPnl, 'BtnUploadImage', '');
+  BtnUploadImage.Align=AlRight;
+  BtnUploadImage.Margins.Bottom = 10;
+  BtnUploadImage.clProSettings.PictureAutoFit = True;
+  BtnUploadImage.clProSettings.PictureSource = 'https://clomosy.com/demos/AddCamera.png';
+  BtnUploadImage.SetclProSettings(BtnUploadImage.clProSettings);
+  AddCarForm.AddNewEvent(BtnUploadImage, tbeOnClick, 'addImageClick');
+  
+  BtnSuccessData = AddCarForm.AddNewproButton(ImageRecordPnl, 'BtnSuccessData', 'Complete Registration'); 
+  BtnSuccessData.Align=alMostBottom;
+  BtnSuccessData.Margins.Bottom = 20;
+  BtnSuccessData.Height = 70;
+  BtnSuccessData.SetclProSettings(BtnGetLocationInfo.clProSettings);
+  AddCarForm.AddNewEvent(BtnSuccessData, tbeOnClick, 'recordSuccess');
+
+}
+void PanelControl;
+{
+  MainVScrollBox.Visible = False;
+  ImageRecordPnl.Visible = True;
+}
+void InsertRecord;
+var
+  clomosyQ1 : TClSQLiteQuery;
+  LastRecordID :Integer;
+{
+ try
+    Clomosy.DBSQLiteQuery.SQL.Text = 'INSERT INTO Records (
+    UploaderName, LocationInfo, Note, LicensePlate, NationalID, 
+    IBAN, FileNumber, PolicyNumber, DateOfBirth
+    ) 
+    VALUES (
+        ' + QuotedStr(EdtUploaderName.Text) + ', ' + QuotedStr(LblLocationInfo.Text) + ', ' + QuotedStr(EdtAddNote.Text) + ', 
+        ' + QuotedStr(AnsiUpperCase(EdtPlateNumber.Text)) + ', ' + QuotedStr(EdtNationalID.Text) + ', ' + QuotedStr(AnsiUpperCase(EdtIBAN.Text)) + ', 
+        ' + QuotedStr(EdtFileNumber.Text) + ', ' + QuotedStr(AnsiUpperCase(EdtPolicyNumber.Text)) + ', ' + QuotedStr(FormatDateTime('yyyy-mm-dd', StrToDate(DateEdtBirthDate.DateStr))) + ')';
+    Clomosy.DBSQLiteQuery.OpenOrExecute;
+    
+    clomosyQ1 = Clomosy.DBSQLiteQueryWith('SELECT RecordID, LicensePlate FROM Records ORDER BY RecordID DESC LIMIT 1;');
+    clomosyQ1.OpenOrExecute;
+    LastRecordID = clomosyQ1.FieldByName('RecordID').AsInteger;
+    Clomosy.GlobalVariableInteger = LastRecordID;
+    lblLicensePlate.Text = clomosyQ1.FieldByName('LicensePlate').AsString + ' Add Vehicle Image';
+    EdtUploaderName.Text = '';
+    EdtPlateNumber.Text = '';
+    EdtNationalID.Text = '';
+    EdtIBAN.Text = '';
+    EdtFileNumber.Text = '';
+    EdtPolicyNumber.Text = '';
+    LblLocationInfo.Text = 'Location Information...';
+    PanelControl;
+    
+  except
+    ShowMessage('004: Exception class: ' + LastExceptionClassName + ' Exception Message: ' + LastExceptionMessage+'insert');
+  } 
+  
+}
+
+void setupInsertRecordTable;
+{
+  if ((EdtUploaderName.Text == '')||(EdtPlateNumber.Text == '')||(EdtNationalID.Text == '')||(EdtIBAN.Text == '')||(EdtFileNumber.Text == '')||(EdtPolicyNumber.Text == '')||(LblLocationInfo.Text == 'Location Information...'))
+  {
+    ShowMessage('Please fill in the required fields (Person, Location, License Plate, ID Number, IBAN, File Number, Policy Number).');
+  }else
+  {
+    InsertRecord;
+  }
+  
+  
+}
+
+void GettingLocation;
+{
+  try
+    Latitude=clGetStringTo(Clomosy.LocationValue,'|')
+    Longitude=clGetStringAfter(Clomosy.LocationValue,'|')
+    Latitude=clGetStringReplace(Latitude,',','.');
+    Longitude=clGetStringReplace(Longitude,',','.');
+    clRest=TCLRest.Create;
+    clRest.BaseURL = 'https://api.geoapify.com/v1/geocode/reverse?'+'lat='+Latitude+'&lon='+Longitude+'&apiKey=dd4bacb2b2f845c1ad9439f8f8ae9289';
+    clRest.Accept = 'application/json';
+    clRest.Method = rmGET;
+    clRest.Execute;
+    
+    QryLocationData= Clomosy.ClDataSetFromJSON(clRest.Response);
+    with QryLocationData do
+    {
+      qryString=FieldByName('features').AsString;
+    }
+    QryLocationData= Clomosy.ClDataSetFromJSON(qryString);
+    with QryLocationData do
+    {
+      qryString=FieldByName('properties').AsString;
+    }
+    QryLocationData= Clomosy.ClDataSetFromJSON(qryString);
+    with QryLocationData do
+    {
+    format=FieldByName('formatted').AsString;
+    }
+    LblLocationInfo.Text=format;
+
+  except
+    ShowMessage(ShowMessage('Exception Class: '+LastExceptionClassName+' Exception Message: '+LastExceptionMessage));
+  }
+}
+
+void LocationInformationDesign;
+{
+  LocationPnl = AddCarForm.AddNewPanel(MainVScrollBox,'LocationPnl');
+  LocationPnl.Align = alMostTop;
+  LocationPnl.Margins.Bottom = 10;
+  LocationPnl.Height = MainPnlHeightSize;
+  
+  LblLocationInfo = AddCarForm.AddNewProLabel(LocationPnl, 'LblLocationInfo', 'Location Information...');
+  LblLocationInfo.Align = alClient;
+  LblLocationInfo.Margins.Right = 10;
+  LblLocationInfo.SetclProSettings(EdtUploaderName.clProSettings);
+  
+  BtnGetLocationInfo = AddCarForm.AddNewProButton(LocationPnl,'BtnGetLocationInfo','Take');
+  BtnGetLocationInfo.Align=alRight;
+  BtnGetLocationInfo.Width = 50;
+  BtnGetLocationInfo.clProSettings.BackgroundColor  = clAlphaColor.clHexToColor('#7674be');
+  BtnGetLocationInfo.clProSettings.FontColor = clAlphaColor.clHexToColor('#ffffff');
+  BtnGetLocationInfo.clProSettings.IsRound = True;
+  BtnGetLocationInfo.clProSettings.RoundHeight = 10;
+  BtnGetLocationInfo.clProSettings.RoundWidth = 10;
+  BtnGetLocationInfo.clProSettings.FontVertAlign = palcenter;
+  BtnGetLocationInfo.clProSettings.FontHorzAlign = palcenter;
+  BtnGetLocationInfo.clProSettings.WordWrap = True;
+  BtnGetLocationInfo.clProSettings.AutoSize = True;
+  BtnGetLocationInfo.SetclProSettings(BtnGetLocationInfo.clProSettings);
+  AddCarForm.AddNewEvent(BtnGetLocationInfo,tbeOnClick,'GettingLocation');
+}
+
+
+ void VirtualKeyboardShow;
+ {
+   MainVScrollBox.Margins.Bottom = AddCarForm.clVKBoundsHeight;
+ }
+ 
+ void VirtualKeyboardHidden;
+ {
+   MainVScrollBox.Margins.Bottom = 0;
+ }
+
+
+{
+
+  AddCarForm = TclForm.Create(Self);
+  LMemStream = TCLMemoryStream.Create;
+  
+  AddCarForm.AddNewEvent(AddCarForm,tbeOnVirtualKeyboardShown,'VirtualKeyboardShow');
+  AddCarForm.AddNewEvent(AddCarForm,tbeOnVirtualKeyboardHidden,'VirtualKeyboardHidden');
+   
+  MainVScrollBox = AddCarForm.AddNewVertScrollBox(AddCarForm,'MainVScrollBox');
+  MainVScrollBox.Align = alClient;
+  MainVScrollBox.Margins.Left = 10;
+  MainVScrollBox.Margins.Right = 10;
+  
+  MainPnlHeightSize = (MainVScrollBox.Height*8)/100;
+  
+  EdtUploaderName = AddCarForm.AddNewProEdit(MainVScrollBox, 'EdtUploaderName', 'Uploader...');
+  EdtUploaderName.Align = alMostTop;
+  EdtUploaderName.Margins.Bottom = 10;
+  EdtUploaderName.Height = MainPnlHeightSize;
+  EdtUploaderName.clProSettings.BorderWidth = 2;
+  EdtUploaderName.clProSettings.BorderColor = clAlphaColor.clHexToColor('#7674be');
+  EdtUploaderName.clProSettings.IsRound = True;
+  EdtUploaderName.clProSettings.RoundHeight = 10;
+  EdtUploaderName.clProSettings.RoundWidth = 10;
+  EdtUploaderName.clProSettings.FontVertAlign = palcenter;
+  EdtUploaderName.clProSettings.FontHorzAlign = palLeading;
+  EdtUploaderName.clProSettings.WordWrap = True;
+  EdtUploaderName.clProSettings.AutoSize = True;
+  EdtUploaderName.SetclProSettings(EdtUploaderName.clProSettings);
+  
+  
+  LocationInformationDesign;
+  
+  
+  EdtAddNote = AddCarForm.AddNewProEdit(MainVScrollBox, 'EdtAddNote', 'Add a note...');
+  EdtAddNote.Align = alMostTop;
+  EdtAddNote.Margins.Bottom = 10;
+  EdtAddNote.Height = MainPnlHeightSize;
+  EdtAddNote.SetclProSettings(EdtUploaderName.clProSettings);
+
+  EdtPlateNumber = AddCarForm.AddNewProEdit(MainVScrollBox, 'EdtPlateNumber', 'Please enter the license plate...');
+  EdtPlateNumber.Align = alMostTop;
+  EdtPlateNumber.Margins.Bottom = 10;
+  EdtPlateNumber.Height = MainPnlHeightSize;
+  EdtPlateNumber.MaxLength = 8;
+  EdtPlateNumber.SetclProSettings(EdtUploaderName.clProSettings);
+  
+  EdtNationalID = AddCarForm.AddNewProEdit(MainVScrollBox, 'EdtNationalID', 'Enter the ID number...');
+  EdtNationalID.Align = alMostTop;
+  EdtNationalID.Margins.Bottom = 10;
+  EdtNationalID.Height = MainPnlHeightSize;
+  EdtNationalID.MaxLength = 11;
+  EdtNationalID.clTypeOfField = taFloat;
+  EdtNationalID.SetclProSettings(EdtUploaderName.clProSettings);
+  
+  EdtIBAN = AddCarForm.AddNewProEdit(MainVScrollBox, 'EdtIBAN', 'Enter IBAN...');
+  EdtIBAN.Align = alMostTop;
+  EdtIBAN.Margins.Bottom = 10;
+  EdtIBAN.Height = MainPnlHeightSize;
+  EdtIBAN.MaxLength = 26;
+  EdtIBAN.SetclProSettings(EdtUploaderName.clProSettings);
+  
+  EdtFileNumber = AddCarForm.AddNewProEdit(MainVScrollBox, 'EdtFileNumber', 'Enter the file number...');
+  EdtFileNumber.Align = alMostTop;
+  EdtFileNumber.Margins.Bottom = 10;
+  EdtFileNumber.Height = MainPnlHeightSize;
+  EdtFileNumber.SetclProSettings(EdtUploaderName.clProSettings);
+  
+  EdtPolicyNumber = AddCarForm.AddNewProEdit(MainVScrollBox, 'EdtPolicyNumber', 'Enter the policy number...');
+  EdtPolicyNumber.Align = alMostTop;
+  EdtPolicyNumber.Margins.Bottom = 10;
+  EdtPolicyNumber.Height = MainPnlHeightSize;
+  EdtPolicyNumber.SetclProSettings(EdtUploaderName.clProSettings);
+  
+  LblBirthDate = AddCarForm.AddNewLabel(MainVScrollBox, 'LblBirthDate', 'Date of Birth:');
+  LblBirthDate.Align = alMostTop;
+  LblBirthDate.Margins.Right = 10;
+  LblBirthDate.TextSettings.HorzAlign = taLeading;
+  
+  DateEdtBirthDate = AddCarForm.AddNewProDateEdit(MainVScrollBox, 'DateEdtBirthDate');
+  DateEdtBirthDate.Align = alMostTop;
+  DateEdtBirthDate.Margins.Bottom = 10;
+  DateEdtBirthDate.Height = MainPnlHeightSize;
+  DateEdtBirthDate.SetclProSettings(EdtUploaderName.clProSettings);
+  
+  BtnAddRecordTable = AddCarForm.AddNewProButton(MainVScrollBox, 'BtnAddRecordTable', 'NEXT');
+  BtnAddRecordTable.Align = AlTop;
+  BtnAddRecordTable.Height = 55;
+  BtnAddRecordTable.Margins.Top = 20;
+  BtnAddRecordTable.SetclProSettings(BtnGetLocationInfo.clProSettings);
+  AddCarForm.AddNewEvent(BtnAddRecordTable, tbeOnClick,'setupInsertRecordTable');  
+  
+  InsertImages;
+  
+  AddCarForm.Run;
+}
