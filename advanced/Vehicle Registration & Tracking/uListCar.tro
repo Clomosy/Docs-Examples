@@ -1,0 +1,246 @@
+var   
+  ListCarForm : TclForm;
+  pnlMain,PnlViewImages: TclPanel;
+  lblCaption : TclLabel;
+  LicensePlate,UploaderName : TclProListView;
+  ListView1 : TClProListView;
+  DesignerPanel1 : TClListViewDesignerPanel;
+  searchEdt : TClProSearchEdit;
+  btnBack : TclProButton;
+  ViewImagesVScrollBox : TclHorzScrollBox;
+  imgRecord : TclImage;
+  LMemStream:TCLMemoryStream;
+  totalImageCount:integer;
+
+ 
+void GetData;
+var
+  QryRecords : TClSQLiteQuery;
+{
+  try
+    QryRecords = Clomosy.DBSQLiteQueryWith('SELECT RecordID as RECORD_GUID,''U. Person: ''||UploaderName as UploaderName,LocationInfo,Note,''License Plate: ''||LicensePlate as LicensePlate,NationalID,IBAN,FileNumber,PolicyNumber,DateOfBirth FROM Records');
+    QryRecords.OpenOrExecute;
+    
+    while (not QryRecords.EOF)
+    {
+      ListView1.clLoadProListViewDataFromDataset(QryRecords);
+    }
+  except
+    ShowMessage('002 Exception Class: '+LastExceptionClassName+' Exception GetData Message: '+LastExceptionMessage);
+  }
+}
+
+void GetImagesTableData(ARecordID:String);
+var
+  QryImages : TClSQLiteQuery;
+  i : Integer;
+{
+  try
+    
+    QryImages = Clomosy.DBSQLiteQueryWith('SELECT * FROM Images WHERE RecordID = '+ARecordID+'');
+    QryImages.OpenOrExecute;
+    
+    if (QryImages.Found)
+    {
+      for (i = 0 to QryImages.RecordCount-1)
+      {
+          
+          imgRecord = ListCarForm.AddNewImage(ViewImagesVScrollBox,'imgRecord'+IntToStr(i));
+          imgRecord.Align = alLeft;
+          imgRecord.Width = ViewImagesVScrollBox.Width;
+          
+          LMemStream = Clomosy.Base64ToStream(QryImages.FieldByName('FileName').AsString); 
+          try
+            imgRecord.Bitmap.LoadFromStream(LMemStream);
+          finally
+            LMemStream.Free;
+          }
+        
+        QryImages.Next;
+      }
+      totalImageCount = QryImages.RecordCount;
+    }
+    
+  except
+    ShowMessage('002 Exception Class: '+LastExceptionClassName+' Exception GetImagesTableData Message: '+LastExceptionMessage);
+  }
+}
+
+Void onItemClicked;
+var
+  ALicensePlate : String;
+{
+  ALicensePlate = clGetStringAfter(ListView1.clSelectedItemData(clText),': ');
+  GetImagesTableData(ListView1.clSelectedItemData(clRecord_GUID));
+
+    
+  pnlMain.Visible = False;
+  PnlViewImages.Visible = True;
+  lblCaption.Text = ALicensePlate + ' Images';
+  TclButton(ListCarForm.clFindComponent('BtnGoBack')).Visible = False;
+
+}
+
+void CreateDesignerPanelItems;
+{
+  LicensePlate = ListCarForm.AddNewProLabel(DesignerPanel1, 'LicensePlate', '-');
+  LicensePlate.Align = AlMostTop;
+  LicensePlate.Height =30;
+  LicensePlate.Margins.Bottom = 5;
+  LicensePlate.Margins.Top = 5;
+  LicensePlate.Margins.Right = 5;
+  LicensePlate.Margins.Left = 5;
+  LicensePlate.clProSettings.FontColor = clAlphaColor.clHexToColor('#000000');
+  LicensePlate.clProSettings.FontSize = 20;
+  LicensePlate.clProSettings.AutoSize = True;
+  LicensePlate.SetclProSettings(LicensePlate.clProSettings);
+  DesignerPanel1.AddPanelObject(LicensePlate, clText);
+  
+  UploaderName = ListCarForm.AddNewProLabel(DesignerPanel1, 'UploaderName', '-');
+  UploaderName.Align = AlTop;
+  UploaderName.Height =30;
+  UploaderName.Margins.Bottom = 5;
+  UploaderName.Margins.Top = 5;
+  UploaderName.Margins.Right = 5;
+  UploaderName.Margins.Left = 5;
+  UploaderName.SetclProSettings(LicensePlate.clProSettings);
+  DesignerPanel1.AddPanelObject(UploaderName, clText1);
+}
+
+void CreateDesignerPanel;
+{
+  DesignerPanel1 = ListCarForm.AddNewProListViewDesignerPanel(ListView1, 'DesignerPanel1');
+  DesignerPanel1.Height = 100;
+  DesignerPanel1.Width = 150;
+  DesignerPanel1.clProSettings.BackgroundColor = clAlphaColor.clHexToColor('#dedede');
+  DesignerPanel1.clProSettings.BorderColor = clAlphaColor.clHexToColor('#7674be');
+  DesignerPanel1.clProSettings.BorderWidth = 2;
+  DesignerPanel1.clProSettings.RoundHeight = 20;
+  DesignerPanel1.clProSettings.RoundWidth = 20;
+  DesignerPanel1.SetclProSettings(DesignerPanel1.clProSettings);
+  
+  ListView1.SetDesignerPanel(DesignerPanel1);
+  ListCarForm.AddNewEvent(ListView1,tbeOnItemClick,'onItemClicked');
+  CreateDesignerPanelItems;
+  
+}
+void CreateProListView;
+{
+  ListView1 = ListCarForm.AddNewProListView(pnlMain,'ListView1');
+  ListView1.Align = AlClient;
+  ListView1.Margins.Bottom = 20;
+  ListView1.Margins.Top = 5;
+  ListView1.Margins.Right = 20;
+  ListView1.Margins.Left = 20;
+  ListView1.clProSettings.ViewType = lvIcon;
+  ListView1.clProSettings.ColCount = 1;
+  ListView1.clProSettings.ItemHeight = 100;
+  ListView1.clProSettings.ItemSpace = 10;
+  ListView1.clProSettings.BackgroundColor = clAlphaColor.clHexToColor('#FFFCFF');
+  ListView1.clProSettings.BorderColor = clAlphaColor.clHexToColor('#7674be');
+  ListView1.clProSettings.BorderWidth = 2;
+  ListView1.clProSettings.RoundHeight = 5;
+  ListView1.clProSettings.RoundWidth = 5;
+  ListView1.SetclProSettings(ListView1.clProSettings);
+  searchEdt.TargetListView = ListView1;
+  CreateDesignerPanel;
+  
+}
+
+ void SetSearchEdit;
+ {
+   searchEdt = ListCarForm.AddNewProSearchEdit(pnlMain,'searchEdt','Search License Plate...');
+   searchEdt.Align = alTop;
+   searchEdt.Height = 40;
+   searchEdt.Margins.Top = 10;
+   searchEdt.Margins.Left = 20;
+   searchEdt.Margins.Right = 20;
+   searchEdt.Margins.Bottom = 2;
+   searchEdt.clProSettings.BorderColor = clAlphaColor.clHexToColor('#000000');
+   searchEdt.clProSettings.FontSize = 12;
+   searchEdt.clProSettings.FontVertAlign = palcenter;
+   searchEdt.clProSettings.FontHorzAlign = palLeading;
+   searchEdt.clProSettings.TextSettings.Font.Style = [fsBold,fsItalic];
+   searchEdt.clProSettings.IsTransparent = False;
+   searchEdt.clProSettings.IsFill = True; 
+   searchEdt.clProSettings.IsRound = True;
+   searchEdt.clProSettings.RoundHeight = 15;
+   searchEdt.clProSettings.RoundWidth = 15;
+   searchEdt.clProSettings.BorderWidth = 1;
+   searchEdt.SetclProSettings(searchEdt.clProSettings);
+ }
+void OnBtnGoBackClick;
+var
+  i,obj;
+{
+  pnlMain.Visible = True;
+  PnlViewImages.Visible = False;
+  lblCaption.Text = 'VEHICLE LIST';
+  TclButton(ListCarForm.clFindComponent('BtnGoBack')).Visible = True;
+  for (i = 0 to totalImageCount-1)
+  {
+    obj = ListCarForm.clFindComponent('imgRecord'+IntToStr(i));
+    obj.Free;
+    obj = nil;
+  }
+  totalImageCount = 0;
+    
+}
+void CreatePnlViewImages;
+{
+  PnlViewImages = ListCarForm.AddNewPanel(ListCarForm,'PnlViewImages');
+  PnlViewImages.Align = alClient;
+  PnlViewImages.Margins.Left = 10;
+  PnlViewImages.Margins.Right = 10;
+  PnlViewImages.Margins.Bottom = 10;
+  PnlViewImages.Visible = False;
+  
+  ViewImagesVScrollBox = ListCarForm.AddNewHorzScrollBox(PnlViewImages,'ViewImagesVScrollBox');
+  ViewImagesVScrollBox.Align = alClient;
+  ViewImagesVScrollBox.Margins.Left = 10;
+  ViewImagesVScrollBox.Margins.Right = 10;
+  ViewImagesVScrollBox.Margins.Bottom = 10;
+  
+  btnBack = ListCarForm.AddNewProButton(PnlViewImages, 'btnBack', 'BACK');
+  btnBack.Align = AlBottom;
+  btnBack.Height = 55;
+  btnBack.Margins.Bottom = 20;
+  btnBack.clProSettings.BackgroundColor  = clAlphaColor.clHexToColor('#7674be');
+  btnBack.clProSettings.FontColor = clAlphaColor.clHexToColor('#ffffff');
+  btnBack.clProSettings.IsRound = True;
+  btnBack.clProSettings.RoundHeight = 10;
+  btnBack.clProSettings.RoundWidth = 10;
+  btnBack.clProSettings.FontVertAlign = palcenter;
+  btnBack.clProSettings.FontHorzAlign = palcenter;
+  btnBack.clProSettings.WordWrap = True;
+  btnBack.clProSettings.AutoSize = True;
+  btnBack.SetclProSettings(btnBack.clProSettings);
+  ListCarForm.AddNewEvent(btnBack, tbeOnClick,'OnBtnGoBackClick'); 
+}
+
+{
+  ListCarForm = TclForm.Create(Self);
+  LMemStream = TCLMemoryStream.Create;
+  lblCaption= ListCarForm.AddNewLabel(ListCarForm,'lblCaption','VEHICLE LIST');
+  lblCaption.StyledSettings = ssFamily;
+  lblCaption.TextSettings.Font.Size=18;
+  lblCaption.Align = alMostTop;
+  lblCaption.Margins.Left= 20;
+  lblCaption.Margins.Top= 10; 
+  lblCaption.Height = 50;
+  lblCaption.TextSettings.HorzAlign = taLeading;
+  lblCaption.WordWrap = True;
+  lblCaption.AutoSize = True;
+  
+  pnlMain = ListCarForm.AddNewPanel(ListCarForm,'pnlMain');
+  pnlMain.Align = alClient;
+  pnlMain.Margins.Left = 10;
+  pnlMain.Margins.Right = 10;
+  
+  CreatePnlViewImages;
+  SetSearchEdit;
+  CreateProListView;
+  GetData;
+  
+  ListCarForm.Run;
+}
