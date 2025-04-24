@@ -1,0 +1,174 @@
+var
+  Form1:TCLForm;
+  clPageControl:TCLPageControl;
+  arrPageName : TclArrayString;
+  Chart1,Chart2,Chart3 : TClChart;
+  I : Integer;
+  
+ void SqLiteInsertData;
+  {
+    try
+      Clomosy.DBSQLiteQuery.Sql.Text = '
+      INSERT INTO SalesCharts (Month, TotalSales) VALUES (''January'', 1500);
+      INSERT INTO SalesCharts (Month, TotalSales) VALUES (''February'', 1700);
+      INSERT INTO SalesCharts (Month, TotalSales) VALUES (''March'', 1600);';
+      Clomosy.DBSQLiteQuery.OpenOrExecute;
+      
+      Clomosy.DBSQLiteQuery.Sql.Text = '
+      INSERT INTO CustomerAnalytics (CustomerGroup, PurchaseAmount) VALUES (''Individual'', 2000);
+      INSERT INTO CustomerAnalytics (CustomerGroup, PurchaseAmount) VALUES (''Corporate'', 5000);
+      INSERT INTO CustomerAnalytics (CustomerGroup, PurchaseAmount) VALUES (''New Customers'', 1000);';
+      Clomosy.DBSQLiteQuery.OpenOrExecute;
+      
+      
+      Clomosy.DBSQLiteQuery.Sql.Text = '
+      INSERT INTO RegionalDistribution (Region, Sales) VALUES (''İstanbul'', 4500);
+      INSERT INTO RegionalDistribution (Region, Sales) VALUES (''Ankara'', 3000);
+      INSERT INTO RegionalDistribution (Region, Sales) VALUES (''İzmir'', 2500);';
+      Clomosy.DBSQLiteQuery.OpenOrExecute;
+      
+      ShowMessage('Adding data to the table was successful!');
+    except
+     ShowMessage('Exception Class: '+LastExceptionClassName+' Exception Message: '+LastExceptionMessage);
+    }
+  }
+  
+  void SqLiteConnectionCreateTable;
+  var
+    TableExistsSalesCharts,TableExistsCustomerAnalytics,TableExistsRegionalDistribution: Boolean;
+    QSalesCharts, QCustomerAnalytics, QRegionalDistribution :TClSQLiteQuery;
+  {
+    try
+      Clomosy.DBSQLiteConnect(Clomosy.AppFilesPath + 'DBReporting.db3', '');
+ 
+      // Check if the table exists
+      QSalesCharts = Clomosy.DBSQLiteQueryWith('SELECT name FROM sqlite_master WHERE type="table" AND name="SalesCharts";');
+      QSalesCharts.OpenOrExecute;
+      QCustomerAnalytics = Clomosy.DBSQLiteQueryWith('SELECT name FROM sqlite_master WHERE type="table" AND name="CustomerAnalytics";');
+      QCustomerAnalytics.OpenOrExecute;
+      QRegionalDistribution = Clomosy.DBSQLiteQueryWith('SELECT name FROM sqlite_master WHERE type="table" AND name="RegionalDistribution";');
+      QRegionalDistribution.OpenOrExecute;
+      // Check the results
+      TableExistsSalesCharts = not QSalesCharts.Eof;
+      TableExistsCustomerAnalytics = not QCustomerAnalytics.Eof;
+      TableExistsRegionalDistribution = not QRegionalDistribution.Eof;
+      
+      // Create the table if it does not exist
+      if not (TableExistsSalesCharts || TableExistsCustomerAnalytics || TableExistsRegionalDistribution)
+      {
+        Clomosy.DBSQLiteQuery.Sql.Text = 'CREATE TABLE SalesCharts (
+                                          ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                                          Month TEXT NOT NULL,
+                                          TotalSales INTEGER NOT NULL
+                                          );';
+        Clomosy.DBSQLiteQuery.OpenOrExecute;
+        
+        Clomosy.DBSQLiteQuery.Sql.Text = 'CREATE TABLE CustomerAnalytics (
+                                          ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                                          CustomerGroup TEXT NOT NULL,
+                                          PurchaseAmount INTEGER NOT NULL
+                                          );';
+        Clomosy.DBSQLiteQuery.OpenOrExecute;
+        
+        Clomosy.DBSQLiteQuery.Sql.Text = 'CREATE TABLE RegionalDistribution (
+                                          ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                                          Region TEXT NOT NULL,
+                                          Sales INTEGER NOT NULL
+                                          );';
+        Clomosy.DBSQLiteQuery.OpenOrExecute;
+        
+        ShowMessage('Table successfully added to the database!');
+        SqLiteInsertData;
+      } else
+      {
+        ShowMessage('The tables already exists.');
+      }
+
+    except
+     ShowMessage('Exception Class: '+LastExceptionClassName+' Exception Message: '+LastExceptionMessage);
+    }
+  }
+  
+ void AddDataToChart;
+ Var
+    QrySalesCharts, QryCustomerAnalytics , QryRegionalDistribution : TClSQLiteQuery;
+ {
+    try
+      QrySalesCharts = Clomosy.DBSQLiteQueryWith('SELECT 
+    SUM(TotalSales) AS SALES, CASE WHEN Month = '+QuotedStr('January')+' THEN '+QuotedStr('clPink')+' 
+    WHEN Month = '+QuotedStr('February')+' THEN '+QuotedStr('clBlue')+'ELSE '+QuotedStr('clGold')+' 
+    END AS color,Month AS device_type FROM SalesCharts GROUP BY Month;');
+      QrySalesCharts.OpenOrExecute;
+      if (QrySalesCharts.Found)
+      {
+        Chart1 = Form1.AddNewChart(clPageControl.PageContainers[0],'Chart1','Clomosy Inc');
+        Chart1.Width = Form1.clWidth - 50;
+        Chart1.Charttype = clCSizedPie;
+        Chart1.XAxisText = 'device_type';
+        Chart1.ChartItemText = 'Average';
+        Chart1.ChartItemsValue = 'SALES';
+        Chart1.ChartTitle = 'Sales Chart';
+        Chart1.clLoadDataFromDataSet(QrySalesCharts);
+      }
+      
+      QryCustomerAnalytics = Clomosy.DBSQLiteQueryWith('SELECT 
+    SUM(PurchaseAmount) AS SALES, 
+    CASE WHEN CustomerGroup = '+QuotedStr('Individual')+' THEN '+QuotedStr('clGreen')+' 
+        WHEN CustomerGroup = '+QuotedStr('Corporate')+' THEN '+QuotedStr('clYellow')+' 
+        ELSE '+QuotedStr('clPeru')+' END AS color, CustomerGroup AS device_type FROM CustomerAnalytics GROUP BY CustomerGroup;');
+      QryCustomerAnalytics.OpenOrExecute;
+      if (QryCustomerAnalytics.Found)
+      {
+        Chart2 = Form1.AddNewChart(clPageControl.PageContainers[1],'Chart2','Clomosy Inc');
+        Chart2.Width = Form1.clWidth - 50;
+        Chart2.Charttype = clCBar;
+        Chart2.XAxisText = 'device_type';
+        Chart2.ChartItemText = 'Average';
+        Chart2.ChartItemsValue = 'SALES';
+        Chart2.ChartTitle = 'Customer Analysis';
+        Chart2.clLoadDataFromDataSet(QryCustomerAnalytics);
+      }
+      
+      QryRegionalDistribution = Clomosy.DBSQLiteQueryWith('SELECT 
+    SUM(Sales) AS SALES, CASE WHEN Region = '+QuotedStr('İstanbul')+' THEN '+QuotedStr('clRed')+' 
+        WHEN Region = '+QuotedStr('Ankara')+' THEN '+QuotedStr('clYellowGreen')+' 
+        ELSE '+QuotedStr('clOrange')+' END AS color, Region AS device_type FROM RegionalDistribution GROUP BY Region;');
+      QryRegionalDistribution.OpenOrExecute;
+      if (QryRegionalDistribution.Found)
+      {
+        Chart3 = Form1.AddNewChart(clPageControl.PageContainers[2],'Chart3','Clomosy Inc');
+        Chart3.Width = Form1.clWidth - 50;
+        Chart3.Charttype = clCLine;
+        Chart3.XAxisText = 'device_type';
+        Chart3.ChartItemText = 'Average';
+        Chart3.ChartItemsValue = 'SALES';
+        Chart3.ChartTitle = 'Regional Distribution';
+        Chart3.clLoadDataFromDataSet(QryRegionalDistribution);
+      }
+      
+     except
+      ShowMessage('Exception class: '+LastExceptionClassName+' Exception Message: ' +LastExceptionMessage);
+     }
+ }  
+  
+{
+  Form1 = TCLForm.Create(Self);
+  arrPageName = TclArrayString.Create;
+  arrPageName = ['Sales Chart','Customer Analysis','Regional Distribution'];
+  clPageControl = Form1.AddNewPageControl(Form1,'clPageControl');
+  clPageControl.Align = alClient;
+  clPageControl.AddContainer; 
+  clPageControl.AddContainer;
+  for (I = 0 to 2)
+    clPageControl.Pages[I].Text = arrPageName[I]; 
+  clPageControl.Tabsize.Mode = tsmFixedSizeAutoShrink;
+  clPageControl.Tabsize.Width = 200;
+  clPageControl.Tabsize.spacing = 10;
+  clPageControl.Layout.Multiline = 1;
+  
+  SqLiteConnectionCreateTable;
+  AddDataToChart;
+  
+  Form1.Run;
+  
+}
