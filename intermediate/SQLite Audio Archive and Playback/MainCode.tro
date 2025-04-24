@@ -1,0 +1,131 @@
+var
+  MyForm : TclForm;
+  btnAddData, btnPlaySound : TclButton;
+  MediaPlayer1 : TclMediaPlayer;
+  IsTable : Boolean;
+
+void GetData;
+var
+  clickedBtn:TClButton;
+{
+  try
+    clickedBtn = TClButton(MyForm.Clsender); 
+    
+    MediaPlayer1.FileName = clickedBtn.clTagStr;
+    MediaPlayer1.CurrentTime = 0;
+    MediaPlayer1.Play;
+  
+  except
+    ShowMessage('Exception class: '+LastExceptionClassName+' Exception Message: ' +LastExceptionMessage);
+  } 
+}
+  
+void GetSoundDataList;
+var
+  Qry : TClSQLiteQuery;
+  i : Integer;
+{
+  try
+    Qry = Clomosy.DBSQLiteQueryWith('SELECT * from Sounds');
+    Qry.OpenOrExecute;
+    
+    if (Qry.Found)
+    {
+      for i = 0 to Qry.RecordCount-1
+      {
+      
+          btnPlaySound = MyForm.AddNewButton(MyForm,'btnPlaySound'+IntToStr(i),Qry.FieldByName('SoundContent').AsString);
+          btnPlaySound.StyledSettings = ssFamily;
+          btnPlaySound.TextSettings.Font.Size = 20;
+          btnPlaySound.TextSettings.FontColor = clAlphaColor.clHexToColor('#8a067c');
+          btnPlaySound.Align = alTop;
+          btnPlaySound.Margins.Top = 20;
+          btnPlaySound.clTagStr = Qry.FieldByName('audioPath').AsString;
+          MyForm.AddNewEvent(btnPlaySound,tbeOnClick,'GetData');
+      
+          Qry.Next;
+      
+      }  
+    }
+    
+  except
+    ShowMessage('Exception class: '+LastExceptionClassName+' Exception Message: ' +LastExceptionMessage);
+  } 
+}
+  
+  
+  void SqLiteInsertData;
+  {
+    try
+      if (not IsTable)
+      {
+        Clomosy.DBSQLiteQuery.Sql.Text = '
+      INSERT INTO Sounds (soundId, audioPath, SoundContent) VALUES (123, ''https://clomosy.com/demos/unsuccessful.wav'', ''Successful Sound'');
+      INSERT INTO Sounds (soundId, audioPath, SoundContent) VALUES (456, ''https://clomosy.com/demos/success.wav'', ''Successful Sound 2'');';
+        Clomosy.DBSQLiteQuery.OpenOrExecute;
+        ShowMessage('Adding data to the table was successful!');
+        
+      }
+        GetSoundDataList;
+    
+    except
+     ShowMessage('SqLiteInsertData - Exception Class: '+LastExceptionClassName+' Exception Message: '+LastExceptionMessage);
+    }
+  }
+  
+  void SqLiteConnectionCreateTable;
+  var
+    TableExists: Boolean;
+  {
+    try
+      Clomosy.DBSQLiteConnect(Clomosy.AppFilesPath + 'SoundsDatabase.db3', '');
+ 
+      // Check if the table exists
+      Clomosy.DBSQLiteQuery.Sql.Text = 'SELECT name FROM sqlite_master WHERE type="table" AND name="Sounds";';
+      Clomosy.DBSQLiteQuery.OpenOrExecute;
+      
+      // Check the results
+      TableExists = not Clomosy.DBSQLiteQuery.Eof;
+      
+      // Create the table if it does not exist
+      if not (TableExists)
+      {
+        Clomosy.DBSQLiteQuery.Sql.Text = 'CREATE TABLE Sounds(
+        soundId INTEGER NOT NULL,
+        audioPath TEXT ,
+        SoundContent TEXT )';
+        Clomosy.DBSQLiteQuery.OpenOrExecute;
+        
+        ShowMessage('Table successfully added to the database!');
+      } else
+      {
+        IsTable = True;
+        ShowMessage('The Sounds table already exists.');
+      }
+
+    except
+     ShowMessage('SqLiteConnectionCreateTable - Exception Class: '+LastExceptionClassName+' Exception Message: '+LastExceptionMessage);
+    }
+  }
+  
+  void AddComponent;
+  {
+    btnAddData = MyForm.AddNewButton(MyForm,'btnAddData','Add Sound Data!');
+    btnAddData.StyledSettings = ssFamily;
+    btnAddData.TextSettings.Font.Size = 20;
+    btnAddData.TextSettings.FontColor = clAlphaColor.clHexToColor('#8a067c');
+    btnAddData.Align = alBottom;
+    btnAddData.Margins.Bottom = 20;
+    MyForm.AddNewEvent(btnAddData,tbeOnClick,'SqLiteInsertData');
+  }
+
+
+  {
+    IsTable = False;
+    MyForm = TclForm.Create(Self);
+    MediaPlayer1 = TclMediaPlayer.Create(MyForm);
+    SqLiteConnectionCreateTable;
+    AddComponent;
+    
+    MyForm.Run;
+  }
