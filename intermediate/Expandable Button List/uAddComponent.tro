@@ -1,0 +1,59 @@
+var
+  customPanel: TclPanel;
+  customChildPanel: TclPanel;
+  getValue : String;
+  
+function addPanel(AMyForm,ALayout,APanelName,AAlign):TclPanel;
+{
+  customPanel = AMyForm.AddNewPanel(ALayout,APanelName);
+  customPanel.Align = AAlign;
+  customPanel.Height = ALayout.Height / 3;
+  customPanel.Margins.Top= 10;
+  customPanel.Margins.Left= 10;
+  customPanel.Margins.Right= 10;
+  Result = customPanel;
+}
+
+function addChildPanel(AMyForm,ALayout,APanelName,ASize,AAlign):TclPanel;
+
+{
+  customChildPanel = AMyForm.AddNewPanel(ALayout,APanelName);
+  customChildPanel.Align = AAlign;
+  customChildPanel.Height = 70;// ALayout.Height / ASize;
+  customChildPanel.Margins.Top= 10;
+  customChildPanel.Margins.Left= 10;
+  customChildPanel.Margins.Right= 10;
+  Result = customChildPanel;
+}
+
+function addButton(AMyForm,ALayout,AButtonName,AButtonCaption):TclButton;
+var
+  customButton: TclButton;
+{
+  customButton = AMyForm.AddNewButton(ALayout,AButtonName,AButtonCaption);
+  customButton.Align = alMostTop;
+  customButton.Height = ALayout.Height / 4 ;
+  customPanel.Height = customButton.Height+ 10;
+  customButton.Margins.Top= 3;
+  customButton.Margins.Left= 3;
+  customButton.Margins.Right= 3;
+  Result = customButton;
+}
+
+function addChildButton(AMyForm,ALayout,AButtonName,AButtonCaption):TclButton;
+var
+  customChildButton: TclButton;
+{
+  customChildButton = AMyForm.AddNewButton(ALayout,AButtonName,AButtonCaption);
+  customChildButton.Align = alMostTop;
+  customChildButton.Height = ALayout.Height / 4;
+  customChildButton.Margins.Top= 3;
+  customChildButton.Margins.Left= 3;
+  customChildButton.Margins.Right= 3;
+  Result = customChildButton;
+}
+
+void incomingValue(a : String);
+{
+  getValue = a;
+}
