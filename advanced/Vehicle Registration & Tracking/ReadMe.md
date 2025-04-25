@@ -20,3 +20,11 @@ Development Environment (Project Management) -> IDE Settings -> Project Location
 - To view the registrations, click the **'Vehicle Listing'** button on the homepage.
 - To review the images of a listed vehicle, click on the desired vehicle in the list.
 - The number of images can be checked.
+
+![Main Page](MainPage.png)
+![Vehicle Registration Process Page](VehicleRegistrationProcessPage.png)
+![Add Vehicle Image Page](AddVehicleImagePage.png)
+![Add Car](AddCar.png)
+![Vehicle List](VehicleList.png)
+![Car Image List](CarImageList.png)
+
