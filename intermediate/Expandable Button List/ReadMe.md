@@ -9,3 +9,5 @@ This project is an example of a list structure consisting of buttons that open a
 - Main header buttons are clickable.
 - Under each main header, there are sub-buttons. These sub-buttons become visible when the corresponding header button is clicked.
 - The buttons under each header are displayed and hidden in relation to their respective header.
+
+![Main Page](MainPage.png)
