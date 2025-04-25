@@ -9,3 +9,5 @@ This project is a **Login** and **SignUp** application developed using the Clomo
 - Local data storage with SQLite
 - Automatic table creation (if it doesn't exist)
 - Predefined sample users (ömer / 123456, leyla / 456789)
+
+![Main Page](MainPage.png)
