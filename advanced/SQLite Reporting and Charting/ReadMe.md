@@ -9,3 +9,7 @@ This project utilizes SQLite to store sales data, customer analytics, and region
 - Data Visualization: Displays the stored data in various chart types (Pie, Bar, Line) using Clomosy charts.
 
 - Dynamic Chart Generation: Automatically generates charts based on the data retrieved from the database.
+
+![Sales Chart](SalesChart.png)
+![Customer Analysis](CustomerAnalysis.png)
+![Regional Distribution](RegionalDistribution.png)
