@@ -8,3 +8,5 @@ This project is an application that uses an SQLite database to store and play au
 - Easily access stored audio files.
 - Retrieve audio files from the database and play them using a media player.
 - User-friendly interface to manage and listen to audio files.
+
+![Main Page](MainPage.png)
