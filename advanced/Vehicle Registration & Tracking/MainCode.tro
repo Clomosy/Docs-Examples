@@ -19,7 +19,6 @@ void OnListCarBtnClick;
 }
 
  {
-  Clomosy.ClearTemporary; 
 
   MainForm = TclForm.Create(nil);
   uDatabaseManager.SqLiteConnectionCreateTable;
